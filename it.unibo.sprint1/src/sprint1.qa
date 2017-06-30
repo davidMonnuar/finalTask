@@ -1,0 +1,41 @@
+System sprint1
+Dispatch cmd : cmd(X)
+
+Context cxt_Sprint1Robot ip [ host="localhost" port=8079 ]  -g cyan
+Context cxt_Sprint1RemoteConsole ip [ host="localhost" port=8089 ]  -g white
+Context cxt_Sprint1Sonar ip [ host="localhost" port=8099 ]  -g green
+
+QActor qasprint1robot context cxt_Sprint1Robot 
+{
+	
+	Plan init normal
+	 println("#######Start Robot########");
+	 switchToPlan recive;
+	 println("#######Stop Robot########");
+	 delay time (100000)
+	
+	Plan recive
+	 receiveMsg time (10000) ;
+	 [ ?? tout(R,W)] endPlan "qasprint1robot time out";
+	 printCurrentMessage -memo;
+	 resumeLastPlan
+	 	
+	Plan startRobot
+	 println ("#######Robot go to point B#######")
+}
+QActor qasprint1console context cxt_Sprint1RemoteConsole {
+	Plan init normal
+	 println("#######Start Remote Console########");
+	 switchToPlan send;
+	 println("#######Stop Remote Console########");
+	 delay time (100000)
+	 
+	Plan send
+	 forward qasprint1robot -m cmd : cmd("Start");
+	 resumeLastPlan
+}
+QActor qasprint1sonar context cxt_Sprint1Sonar {
+	Plan init normal
+	 println("ciao")
+	
+}

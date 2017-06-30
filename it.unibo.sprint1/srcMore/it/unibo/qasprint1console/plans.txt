@@ -1,0 +1,6 @@
+plan(1,init, sentence(true,move(print("#######Start Remote Console########")),'','' ))
+plan(2,init, sentence(true,move( switchplan(send) ),'','' ))
+plan(3,init, sentence(true,move(print("#######Stop Remote Console########")),'','' ))
+plan(4,init, sentence(true,delay( 100000) ,'','' ))
+plan(1,send, sentence(true,forward(qasprint1robot, cmd,cmd( "Start")),'','' ))
+plan(2,send, sentence(true,move(resumeplan),'','' ))
