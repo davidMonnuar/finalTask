@@ -1,0 +1,122 @@
+/*
+*/
+
+ 
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'jacoco'
+
+version = "1.0"
+sourceCompatibility = "1.8"
+
+  	sourceSets {
+		main {
+		 java {
+		   srcDirs = ['src' , 'src-gen', 'srcMore']
+		}
+		}
+	test {
+	 java {
+	   srcDirs = ['test' ]
+	 }
+	}
+	}
+	
+repositories {
+      mavenCentral()
+}
+
+dependencies {
+	  compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/unibo', include: 'uniboInterfaces.jar')
+	  compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/unibo', include: 'unibonoawtsupports.jar')
+	  compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/unibo', include: 'uniboEnvBaseAwt.jar')
+	  compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/unibo', include: '2p301.jar')
+	  compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/unibo', include: 'labbaseRobotSam.jar')
+	  compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/http', include: 'nanoHTTPD.jar')
+	  //compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/unibo', include: '*.jar')
+      testCompile 'junit:junit:4.12'
+      // https://mvnrepository.com/artifact/com.typesafe.akka/akka-actor_2.11
+	  compile group: 'com.typesafe.akka', name: 'akka-actor_2.11', version: '2.4.8'
+	  compile group: 'com.typesafe.akka', name: 'akka-remote_2.11', version: '2.4.9-RC2'
+
+	  //compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/http', include: 'nanohttpd-2.3.1.jar')
+	  //compile fileTree(dir: 'C:/aLab2016/lab2014Bo/it.unibo.iss.libs/libs/http', include: 'nanohttpd-websocket-2.3.1.jar')
+
+	 // https://mvnrepository.com/artifact/org.json/json
+	 compile group: 'org.json', name: 'json', version: '20160810'
+
+
+	  // https://mvnrepository.com/artifact/com.nanohttpd/nanohttpd-websocket
+	   //compile group: 'com.nanohttpd', name: 'nanohttpd-websocket', version: '2.2.0' //2.1.1
+	  // https://mvnrepository.com/artifact/org.nanohttpd/nanohttpd-websocket
+		//compile group: 'org.nanohttpd', name: 'nanohttpd-websocket', version: '2.3.1'
+		
+	  	// https://mvnrepository.com/artifact/org.nanohttpd/nanohttpd
+		//compile group: 'org.nanohttpd', name: 'nanohttpd', version: '2.3.1'
+		//compile 'org.nanohttpd:nanohttpd:2.3.1'
+	  
+	  //compile 'com.nanohttpd:nanohttpd:2.2.0'
+	  //runtime([group: 'org.nanohttpd', name: 'nanohttpd', version: '2.2.0'],    	)
+}
+
+/*
+* TESTING
+*/
+test {
+	testLogging {
+		outputs.upToDateWhen { false }		
+		showStandardStreams = true		
+		events 'failed' , 'passed' //,  'started', 'skipped', 		
+	}
+	//exclude '**/Test*Akka.class'
+	//exclude '**/Test*Actions.class'
+ 	//include '**/Test*.class'
+	
+	////include '**/TestQActorSoundActions.class' 
+ 	////
+	
+	include '**/TestQActorMessage.class'
+	include '**/TestQActorUtils.class'
+	include '**/TestQActorSimpleActions.class'
+	include '**/TestQActorSoundActions.class'
+	include '**/TestSystemPrologComput.class'
+	include '**/TestEventPerceiver.class'
+	include '**/TestSystemMsgsSelect.class'
+	include '**/TestSystemSendReceive.class'
+	include '**/TestActionObservable.class'
+	include '**/TestQActorFiboActions.class'
+	include '**/TestQActorTimedActions.class'
+	include '**/TestQActorReactiveActions.class'
+	include '**/TestQActors.class'
+	 
+	//include '**/Test*Fibo*.class'		//OK
+	//include '**/TestQActors.class'
+}
+test.afterSuite { TestDescriptor suite, TestResult result -> //add closure to be notified
+	if( !suite.parent && result.getTestCount() > 0) { //there is at least one test
+		long elapsedTestTime = result.getEndTime() - result.getStartTime()
+ 		System.out.println("""AFTERTEST Elapsed time for execution of ${result.getTestCount()} test(s):  $elapsedTestTime ms""");
+	}
+}
+
+task testAkka(type: Test) {
+	include  '**/Test*Akka.class'
+	group = 'verification'
+	testLogging {
+		outputs.upToDateWhen { false }		
+		showStandardStreams = true		
+		events 'failed' ,'passed' //,  'started', 'skipped', 		
+	}
+}
+test.finalizedBy jacocoTestReport
+testAkka.finalizedBy jacocoTestReport
+
+jacocoTestReport {
+     reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
+    }
+}
+//check.dependsOn jacocoTestReport
+//gradle clean build for overcoming jacoco inconsistencies
