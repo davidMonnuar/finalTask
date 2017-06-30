@@ -36,6 +36,6 @@ QActor qasprint1console context cxt_Sprint1RemoteConsole {
 }
 QActor qasprint1sonar context cxt_Sprint1Sonar {
 	Plan init normal
-	 println("ciao")
+	 println("ciao sono davide ")
 	
 }
