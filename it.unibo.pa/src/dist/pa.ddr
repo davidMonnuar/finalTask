@@ -1,0 +1,82 @@
+RobotSystem paSys
+Dispatch cmd : cmd(X)
+Dispatch sonar : sonar(SONARNAME,TARGETNAME,DISTANCE)
+
+/*Event inputcmd          : usercmd(X)				//(RUN button)
+Event usercmd           : usercmd(robotgui(CMD)) 	//(FORWARD button) CMD w(low)
+Event sonarDetect 		: sonarDetect(X)			//From (virtual robot) sonar
+Event alarm             : alarm(X)					//(FIRE button)
+Event endplay           : endplay     
+  */             
+Context cxt_paRobot ip [ host="192.168.137.2" port=8079 ]  
+Context cxt_paRemoteConsole ip [ host="192.168.137.1" port=8089 ]  -g white
+Context cxt_paSonar ip [ host="192.168.137.1" port=8099 ]  -g green
+
+
+QActor qapaconsole context cxt_paRemoteConsole {
+	Plan init normal
+		println("#######Start Remote Console Mock########");
+		delay time (10000);
+		println("#####Send Cmd Remote Console Mock#######");
+	 	switchToPlan send;
+	 	println("#######Stop Remote Console Mock#########");
+	 	delay time (100000)
+	 
+	Plan send
+	 	forward qrparobot -m cmd : cmd(start);
+	 	resumeLastPlan
+}
+QActor qapasonar context cxt_paSonar {
+	Plan init normal
+	 	println("#############Start Sonar Mock##########");
+		println("#########Sonar Mock Send distance######");
+	 	switchToPlan send
+	Plan send 
+	 	forward qrparobot -m sonar : sonar(sonara,qrparobot,100);
+	 	println("#######SendA Robot########");
+	 	forward qrparobot -m sonar : sonar(sonarb,qrparobot,99);
+	 	println("#######SendB Robot########");
+	 	delay time(5000);
+	 	repeatPlan
+}
+
+Robot nano0 QActor qrparobot context cxt_paRobot 
+{
+	Plan init normal
+	 	println("#######Start Robot########");
+	 	switchToPlan receiveCmd
+	
+	Plan receiveCmd
+	 	println("#######ReceiveCmd Robot########");
+	 //	receiveTheMsg m(A,dispatch,qapaconsole,R,cmd("start"),N) time(20000);
+	 	receiveMsg time (20000) -m cmd sender qapaconsole  content cmd(start);
+	 	[!? tout(R,W)]  endPlan "Error receive"; //test per lettura messaggio
+	 	onMsg cmd : cmd(start) -> switchToPlan reciveSonarADistance;
+		repeatPlan
+	// 	switchToPlan reciveSonarADistance
+	 	
+	Plan reciveSonarADistance
+	 	println("#######SonarADistance Robot########");
+	 	receiveMsg time (20000) -m cmd sender qapasonar  content sonara;
+	 	[!? tout(R,W)]  endPlan "Error receive";
+	 	onMsg sonar : sonar(sonara,qrparobot,D) -> switchToPlan startRobot;
+	 	repeatPlan
+	 		 		
+	Plan reciveSonarBDistance
+	 	println("#######SonarBDistance Robot########");
+	 	receiveMsg time (20000) -m cmd sender qapasonar  content sonarb;
+	 	[!? tout(R,W)]  endPlan "Error receive";
+	 	onMsg sonar : sonar(sonarb,qrparobot,D) -> switchToPlan stopRobot;
+		repeatPlan
+	
+	Plan startRobot
+	 	println ("#######Robot go to point B#######");
+	 	robotForward speed (100) time (0);
+	 	switchToPlan reciveSonarBDistance
+	 	
+	Plan stopRobot
+	 	robotStop speed(0) time(0);
+	 	println ("#######Robot Stop#######");
+	 	delay time (100000);
+	 	endQActor "#######Robot End#######"
+}

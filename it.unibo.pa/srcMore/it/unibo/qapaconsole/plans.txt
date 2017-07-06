@@ -1,0 +1,8 @@
+plan(1,init, sentence(true,move(print("#######Start Remote Console Mock########")),'','' ))
+plan(2,init, sentence(true,delay( 10000) ,'','' ))
+plan(3,init, sentence(true,move(print("#####Send Cmd Remote Console Mock#######")),'','' ))
+plan(4,init, sentence(true,move( switchplan(send) ),'','' ))
+plan(5,init, sentence(true,move(print("#######Stop Remote Console Mock#########")),'','' ))
+plan(6,init, sentence(true,delay( 100000) ,'','' ))
+plan(1,send, sentence(true,forward(qrparobot, cmd,cmd( start)),'','' ))
+plan(2,send, sentence(true,move(resumeplan),'','' ))
