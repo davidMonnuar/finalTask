@@ -1,0 +1,6 @@
+plan(1,init, sentence(true,move(print("#######Start Remote Console########")),'','' ))
+plan(2,init, sentence(true,move( switchplan(sendUserCommands) ),'','' ))
+plan(1,sendUserCommands, sentence(true,senseEvent(100000,"local_inputcmd","continue"),'','' ))
+plan(2,sendUserCommands, sentence(true,printCurrentEvent(false),'','' ))
+plan(3,sendUserCommands, sentence(true,eventswitch(local_inputcmd, »usercmd( cmd0), forward(qrparobot, cmd,cmd( cmd0)) ),'','' ))
+plan(4,sendUserCommands, sentence(true,repeatplan(0) ,'','' ))
