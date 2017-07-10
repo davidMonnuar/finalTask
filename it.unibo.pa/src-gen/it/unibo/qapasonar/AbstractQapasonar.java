@@ -65,9 +65,14 @@ public abstract class AbstractQapasonar extends QActor {
 	    	nPlanIter++;
 	    		temporaryStr = "\"#############Start Sonar Mock##########\"";
 	    		println( temporaryStr );  
+	    		//delay
+	    		aar = delayReactive(4000,"" , "");
+	    		if( aar.getInterrupted() ) curPlanInExec   = "init";
+	    		if( ! aar.getGoon() ) break;
 	    		temporaryStr = "\"#########Sonar Mock Send distance######\"";
 	    		println( temporaryStr );  
 	    		if( ! planUtils.switchToPlan("send").getGoon() ) break;
+	    		if( ! planUtils.switchToPlan("sendFinal").getGoon() ) break;
 	    break;
 	    }//while
 	    return returnValue;
@@ -85,24 +90,56 @@ public abstract class AbstractQapasonar extends QActor {
 	    while(true){
 	    	curPlanInExec =  "send";	//within while since it can be lost by switchlan
 	    	nPlanIter++;
-	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonara,qrparobot,100)", guardVars ).toString();
+	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonara,qrparobot,50)", guardVars ).toString();
 	    		sendMsg("sonar","qrparobot", QActorContext.dispatch, temporaryStr ); 
 	    		temporaryStr = "\"#######SendA Robot########\"";
 	    		println( temporaryStr );  
-	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonarb,qrparobot,99)", guardVars ).toString();
+	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonarb,qrparobot,100)", guardVars ).toString();
 	    		sendMsg("sonar","qrparobot", QActorContext.dispatch, temporaryStr ); 
 	    		temporaryStr = "\"#######SendB Robot########\"";
 	    		println( temporaryStr );  
 	    		//delay
-	    		aar = delayReactive(5000,"" , "");
+	    		aar = delayReactive(1000,"" , "");
 	    		if( aar.getInterrupted() ) curPlanInExec   = "send";
 	    		if( ! aar.getGoon() ) break;
-	    		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
+	    		if( planUtils.repeatPlan(nPlanIter,6).getGoon() ) continue;
+	    		returnValue = continueWork;  
 	    break;
 	    }//while
 	    return returnValue;
 	    }catch(Exception e){
 	       //println( getName() + " plan=send WARNING:" + e.getMessage() );
+	       QActorContext.terminateQActorSystem(this); 
+	       return false;  
+	    }
+	    }
+	    public boolean sendFinal() throws Exception{	//public to allow reflection
+	    try{
+	    	int nPlanIter = 0;
+	    	//curPlanInExec =  "sendFinal";
+	    	boolean returnValue = suspendWork;		//MARCHH2017
+	    while(true){
+	    	curPlanInExec =  "sendFinal";	//within while since it can be lost by switchlan
+	    	nPlanIter++;
+	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonara,qrparobot,50)", guardVars ).toString();
+	    		sendMsg("sonar","qrparobot", QActorContext.dispatch, temporaryStr ); 
+	    		temporaryStr = "\"#######SendA Robot########\"";
+	    		println( temporaryStr );  
+	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonarb,qrparobot,50)", guardVars ).toString();
+	    		sendMsg("sonar","qrparobot", QActorContext.dispatch, temporaryStr ); 
+	    		temporaryStr = "\"#######SendB Robot 50########\"";
+	    		println( temporaryStr );  
+	    		//delay
+	    		aar = delayReactive(1000,"" , "");
+	    		if( aar.getInterrupted() ) curPlanInExec   = "sendFinal";
+	    		if( ! aar.getGoon() ) break;
+	    		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
+	    		returnValue = continueWork;  
+	    break;
+	    }//while
+	    return returnValue;
+	    }catch(Exception e){
+	       //println( getName() + " plan=sendFinal WARNING:" + e.getMessage() );
 	       QActorContext.terminateQActorSystem(this); 
 	       return false;  
 	    }

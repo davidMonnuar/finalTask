@@ -1,9 +1,9 @@
 %====================================================================================
 % Context cxt_paSonar  SYSTEM-configuration: file it.unibo.cxt_paSonar.paSys.pl 
 %====================================================================================
-context(cxt_parobot, "192.168.137.2",  "TCP", "8079" ).  		 
-context(cxt_paremoteconsole, "192.168.137.1",  "TCP", "8089" ).  		 
-context(cxt_pasonar, "192.168.137.1",  "TCP", "8099" ).  		 
+context(cxt_parobot, "localhost",  "TCP", "8079" ).  		 
+context(cxt_paremoteconsole, "localhost",  "TCP", "8089" ).  		 
+context(cxt_pasonar, "localhost",  "TCP", "8099" ).  		 
 %%% -------------------------------------------
 qactor( qapaconsole , cxt_paremoteconsole, "it.unibo.qapaconsole.MsgHandle_Qapaconsole"   ). %%store msgs 
 qactor( qapaconsole_ctrl , cxt_paremoteconsole, "it.unibo.qapaconsole.Qapaconsole"   ). %%control-driven 

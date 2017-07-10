@@ -17,6 +17,9 @@ digraph finite_state_machine {
   	
   	
   	init -> send [ label = ""];
+  	init -> sendFinal [ label = ""];
   	
   	send -> send [ label = ""];
+  	
+  	sendFinal -> sendFinal [ label = ""];
 }

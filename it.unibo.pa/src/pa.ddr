@@ -16,7 +16,7 @@ Context cxt_paSonar ip [ host="localhost" port=8099 ]  -g green
 QActor qapaconsole context cxt_paRemoteConsole {
 	Plan init normal
 		println("#######Start Remote Console Mock########");
-		delay time (10000);
+		delay time (3000);
 		println("#####Send Cmd Remote Console Mock#######");
 	 	switchToPlan send;
 	 	println("#######Stop Remote Console Mock#########");
@@ -29,22 +29,23 @@ QActor qapaconsole context cxt_paRemoteConsole {
 QActor qapasonar context cxt_paSonar {
 	Plan init normal
 	 	println("#############Start Sonar Mock##########");
+		delay time(4000);
 		println("#########Sonar Mock Send distance######");
 	 	switchToPlan send;
 	 	switchToPlan sendFinal
 	Plan send resumeLastPlan
-	 	forward qrparobot -m sonar : sonar(sonara,qrparobot,100);
-	 	println("#######SendA Robot########");
-	 	forward qrparobot -m sonar : sonar(sonarb,qrparobot,50);
-	 	println("#######SendB Robot########");
-	 	delay time(5000);
-	 	repeatPlan 5
-	Plan sendFinal resumeLastPlan
-	 	forward qrparobot -m sonar : sonar(sonara,qrparobot,100);
+	 	forward qrparobot -m sonar : sonar(sonara,qrparobot,50);
 	 	println("#######SendA Robot########");
 	 	forward qrparobot -m sonar : sonar(sonarb,qrparobot,100);
 	 	println("#######SendB Robot########");
-	 	delay time(5000);
+	 	delay time(1000);
+	 	repeatPlan 6
+	Plan sendFinal resumeLastPlan
+	 	forward qrparobot -m sonar : sonar(sonara,qrparobot,50);
+	 	println("#######SendA Robot########");
+	 	forward qrparobot -m sonar : sonar(sonarb,qrparobot,50);
+	 	println("#######SendB Robot 50########");
+	 	delay time(1000);
 	 	repeatPlan 
 }
 
@@ -52,6 +53,8 @@ Robot mocksimple QActor qrparobot context cxt_paRobot
 {
 	Rules {
 		
+		distB( D ) :- distA( D ), !, assert( uguale( A, B ) ).
+		distB( D ).
 	}
 	Plan init normal
 	 	println("#######Start Robot########");
@@ -60,26 +63,27 @@ Robot mocksimple QActor qrparobot context cxt_paRobot
 	Plan receiveCmd
 	 	println("#######ReceiveCmd Robot########");
 	 	receiveMsg time (20000) -m cmd sender qapaconsole  content cmd(start);
-	 	[!? tout(R,W)]  endPlan "Error receive"; //test per lettura messaggio
+	// 	[!? tout(R,W)]  endPlan "Error receive"; //test per lettura messaggio
 	 	onMsg cmd : cmd(start) -> switchToPlan reciveSonarADistance;
 		repeatPlan
 	 	
 	Plan reciveSonarADistance
 	 	println("#######SonarADistance Robot########");
-	 	receiveMsg time (20000) -m cmd sender qapasonar  content sonara;
-	 	[!? tout(R,W)]  endPlan "Error receive";
+	 	receiveMsg time (20000) -m sonar sender qapasonar  content sonara;
+	// 	[!? tout(R,W)]  endPlan "Error receive A";
 	// 	onMsg sonar : sonar(sonara,qrparobot,D) -> actorOp setDistanceSonarA(D);
+	 	onMsg sonar : sonar(sonara,qrparobot,S) -> addRule distA(S);
 	 	onMsg sonar : sonar(sonara,qrparobot,D) -> switchToPlan startRobot;
 	 	repeatPlan
 	 		 		
 	Plan reciveSonarBDistance
 	 	println("#######SonarBDistance Robot########");
-	 	receiveMsg time (20000) -m cmd sender qapasonar  content sonarb;
-	 	[!? tout(R,W)]  endPlan "Error receive";
-	 //	onMsg sonar : sonar(sonarb,qrparobot,F) -> addRule dist(F);
-	 	onMsg sonar : sonar(sonarb,qrparobot,F) -> switchToPlan stopRobot;
-		 
-		repeatPlan
+	 	receiveMsg time (20000) -m sonar sender qapasonar  content sonarb;
+	 //	[!? tout(R,W)]  endPlan "Error receive B";
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) -> demo distB( F );
+	 	[!? uguale( A, B )] switchToPlan stopRobot;
+	 	repeatPlan 
+		
 	
 	Plan startRobot
 	 	println ("#######Robot go to point B#######");

@@ -120,12 +120,6 @@ protected IActorAction  action;
     				    	addRule("tout(receivemsg,"+getName()+")");
     				    }
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?tout(R,W)" )) != null ){
-    		println( "Error receive" );
-    		//IF(curPlan.resume)»returnValue = continueWork;ENDIF»
-    		returnValue = continueWork;
-    		break;
-    		}
     		//onMsg
     		if( currentMessage.msgId().equals("cmd") ){
     			String parg = "";
@@ -158,7 +152,7 @@ protected IActorAction  action;
     		if( ! checkInMsgQueue() ){
     			//ReceiveMsg
     					 aar  = planUtils.receiveMsg(mysupport,
-    					 "cmd" ,"MSGTYPE", 
+    					 "sonar" ,"MSGTYPE", 
     					 "qapasonar",this.getName(), 
     					 "sonara","MSGNUM", 20000, "" , "");	//could block
     					//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
@@ -172,13 +166,14 @@ protected IActorAction  action;
     				    	addRule("tout(receivemsg,"+getName()+")");
     				    }
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?tout(R,W)" )) != null ){
-    		println( "Error receive" );
-    		//IF(curPlan.resume)»returnValue = continueWork;ENDIF»
-    		returnValue = continueWork;
-    		break;
-    		}
     		//onMsg
+    		if( currentMessage.msgId().equals("sonar") ){
+    			String parg="distA(S)";
+    			/* AddRule */
+    			parg = updateVars(Term.createTerm("sonar(SONARNAME,TARGETNAME,DISTANCE)"),  Term.createTerm("sonar(sonara,qrparobot,S)"), 
+    				    		  					Term.createTerm(currentMessage.msgContent()), parg);
+    			if( parg != null ) addRule(parg);	    		  					
+    		}//onMsg
     		if( currentMessage.msgId().equals("sonar") ){
     			String parg = "";
     			/* SwitchPlan */
@@ -210,7 +205,7 @@ protected IActorAction  action;
     		if( ! checkInMsgQueue() ){
     			//ReceiveMsg
     					 aar  = planUtils.receiveMsg(mysupport,
-    					 "cmd" ,"MSGTYPE", 
+    					 "sonar" ,"MSGTYPE", 
     					 "qapasonar",this.getName(), 
     					 "sonarb","MSGNUM", 20000, "" , "");	//could block
     					//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
@@ -224,22 +219,28 @@ protected IActorAction  action;
     				    	addRule("tout(receivemsg,"+getName()+")");
     				    }
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?tout(R,W)" )) != null ){
-    		println( "Error receive" );
-    		//IF(curPlan.resume)»returnValue = continueWork;ENDIF»
-    		returnValue = continueWork;
-    		break;
-    		}
     		//onMsg
     		if( currentMessage.msgId().equals("sonar") ){
-    			String parg = "";
-    			/* SwitchPlan */
-    			parg =  updateVars(  Term.createTerm("sonar(SONARNAME,TARGETNAME,DISTANCE)"), Term.createTerm("sonar(sonarb,qrparobot,D)"), 
+    			String parg="distB(F)";
+    			/* PHead */
+    			parg =  updateVars( Term.createTerm("sonar(SONARNAME,TARGETNAME,DISTANCE)"), Term.createTerm("sonar(sonarb,qrparobot,F)"), 
     				    		  					Term.createTerm(currentMessage.msgContent()), parg);
-    				if( parg != null ){
-    					 if( ! planUtils.switchToPlan("stopRobot").getGoon() ) break; 
-    				}//else println("guard  fails");  //parg is null when there is no guard (onEvent)
-    		}if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
+    				if( parg != null ) {
+    				    aar = QActorUtils.solveGoal(this,myCtx,pengine,parg,"",outEnvView,86400000);
+    					//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
+    					if( aar.getInterrupted() ){
+    						curPlanInExec   = "reciveSonarBDistance";
+    						if( aar.getTimeRemained() <= 0 ) addRule("tout(demo,"+getName()+")");
+    						if( ! aar.getGoon() ) break;
+    					} 			
+    					if( aar.getResult().equals("failure")){
+    						if( ! aar.getGoon() ) break;
+    					}else if( ! aar.getGoon() ) break;
+    				}
+    		}if( (guardVars = QActorUtils.evalTheGuard(this, " !?uguale(A,B)" )) != null ){
+    		if( ! planUtils.switchToPlan("stopRobot").getGoon() ) break;
+    		}
+    		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
     break;
     }//while
     return returnValue;
@@ -332,7 +333,6 @@ protected IActorAction  action;
     //COMPONENTS
      RobotComponent motorleft 
      RobotComponent motorright 
-    sensor distanceFront  todo  
     Composed component motors
     */
     protected void addSensorObservers(){

@@ -24,7 +24,11 @@ private it.unibo.qactor.robot.RobotActor robot;
  
 	public static void main(String[] args) throws Exception{
 			IOutputEnvView outEnvView = SituatedSysKb.standardOutEnvView;
-			it.unibo.qactors.QActorUtils.setRobotBase("nano0" );  
+			it.unibo.qactors.QActorUtils.setRobotBase("mocksimple" );  
+			it.unibo.is.interfaces.IBasicEnvAwt env=new it.unibo.baseEnv.basicFrame.EnvFrame( 
+			"Env_cxt_paRobot",java.awt.Color.cyan , java.awt.Color.black );
+		env.init();
+		outEnvView = env.getOutputEnvView();
 		    String webDir = null;
 			QActorContext.initQActorSystem(
 				"cxt_parobot", "./srcMore/it/unibo/cxt_paRobot/pasys.pl", 

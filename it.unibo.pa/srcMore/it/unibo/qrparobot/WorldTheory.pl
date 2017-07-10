@@ -136,6 +136,8 @@ actorPrintln( X ):- actorobj(A), text_term(XS,X), A  <- println( XS ).
 %-------------------------------------------------
 %  User static rules about qrparobot
 %------------------------------------------------- 
+distB( D):-distA( D), ! ,assert( uguale( A,B)).
+distB( D).
 /*
 ------------------------------------------------------------------------
 testex :- actorPrintln( testex ),

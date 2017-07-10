@@ -66,7 +66,7 @@ public abstract class AbstractQapaconsole extends QActor {
 	    		temporaryStr = "\"#######Start Remote Console Mock########\"";
 	    		println( temporaryStr );  
 	    		//delay
-	    		aar = delayReactive(10000,"" , "");
+	    		aar = delayReactive(3000,"" , "");
 	    		if( aar.getInterrupted() ) curPlanInExec   = "init";
 	    		if( ! aar.getGoon() ) break;
 	    		temporaryStr = "\"#####Send Cmd Remote Console Mock#######\"";
