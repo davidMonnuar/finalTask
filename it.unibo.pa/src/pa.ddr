@@ -52,7 +52,8 @@ QActor qapasonar context cxt_paSonar {
 Robot mocksimple QActor qrparobot context cxt_paRobot 
 {
 	Rules {
-		
+		distB( D ) :- distA( C ), eval( lt, D, C ), !, assert( minore( B, A ) ).
+		distB( D ) :- distA( C ), eval( gt, D, C ), !, assert( maggiore( B, A ) ).
 		distB( D ) :- distA( D ), !, assert( uguale( A, B ) ).
 		distB( D ).
 	}
@@ -68,28 +69,45 @@ Robot mocksimple QActor qrparobot context cxt_paRobot
 		repeatPlan
 	 	
 	Plan reciveSonarADistance
-	 	println("#######SonarADistance Robot########");
-	 	receiveMsg time (20000) -m sonar sender qapasonar  content sonara;
-	// 	[!? tout(R,W)]  endPlan "Error receive A";
-	// 	onMsg sonar : sonar(sonara,qrparobot,D) -> actorOp setDistanceSonarA(D);
+	 	receiveMsg time (20000) -m sonar sender qapasonara content sonara;
+	 	onMsg sonar : sonar(sonara,qrparobot,F) -> println(distdia( F ));
 	 	onMsg sonar : sonar(sonara,qrparobot,S) -> addRule distA(S);
 	 	onMsg sonar : sonar(sonara,qrparobot,D) -> switchToPlan startRobot;
 	 	repeatPlan
 	 		 		
 	Plan reciveSonarBDistance
-	 	println("#######SonarBDistance Robot########");
-	 	receiveMsg time (20000) -m sonar sender qapasonar  content sonarb;
-	 //	[!? tout(R,W)]  endPlan "Error receive B";
+	 	receiveMsg time (20000) -m sonar sender qapasonarb content sonarb;
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) ->println(distinizialedib( F ));
 	 	onMsg sonar : sonar(sonarb,qrparobot,F) -> demo distB( F );
-	 	[!? uguale( A, B )] switchToPlan stopRobot;
+	 	[!? minore( B, A )] println( lt(A, B));
+	 	[?? minore( B, A )] switchToPlan leftRobot;
+	 	[!? maggiore( B, A )] println( gt(A, B));
+	 	[?? maggiore( B, A )] switchToPlan rightRobot;
+	 	[!? uguale( A, B )] println( ug(A, B));
+	 	[?? uguale( A, B )] switchToPlan stopRobot;
 	 	repeatPlan 
-		
+	Plan valueSonarBDistance
+	 	receiveMsg time (20000) -m sonar sender qapasonarb content sonarb;
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) ->println(distdib( F ));
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) -> demo distB( F );
+	 	[!? uguale( A, B )] println( ug(A, B));
+	 	[?? uguale( A, B )] switchToPlan stopRobot;
+	 	repeatPlan 
 	
 	Plan startRobot
 	 	println ("#######Robot go to point B#######");
 	 	robotForward speed (100) time (0);
 	 	switchToPlan reciveSonarBDistance
-	 	
+	Plan leftRobot
+	 	robotLeft speed(100) time(1000);
+	 	println ("#######Robot LEFT#######");
+	 	robotForward speed (100) time (0);
+		switchToPlan valueSonarBDistance
+	Plan rightRobot
+	 	robotRight speed(100) time(1000);
+	 	println ("#######Robot RIGHT#######");
+	 	robotForward speed (100) time (0);
+	 	switchToPlan valueSonarBDistance 	
 	Plan stopRobot
 	 	robotStop speed(0) time(0);
 	 	println ("#######Robot Stop#######");
