@@ -101,8 +101,6 @@ protected IActorAction  action;
     while(true){
     	curPlanInExec =  "receiveCmd";	//within while since it can be lost by switchlan
     	nPlanIter++;
-    		temporaryStr = "\"#######ReceiveCmd Robot########\"";
-    		println( temporaryStr );  
     		if( ! checkInMsgQueue() ){
     			//ReceiveMsg
     					 aar  = planUtils.receiveMsg(mysupport,
@@ -127,7 +125,7 @@ protected IActorAction  action;
     			parg =  updateVars(  Term.createTerm("cmd(X)"), Term.createTerm("cmd(start)"), 
     				    		  					Term.createTerm(currentMessage.msgContent()), parg);
     				if( parg != null ){
-    					 if( ! planUtils.switchToPlan("receiveSonarADistance").getGoon() ) break; 
+    					 if( ! planUtils.switchToPlan("askSonarADistance").getGoon() ) break; 
     				}//else println("guard  fails");  //parg is null when there is no guard (onEvent)
     		}//onMsg
     		if( currentMessage.msgId().equals("cmd") ){
@@ -144,6 +142,28 @@ protected IActorAction  action;
     return returnValue;
     }catch(Exception e){
        //println( getName() + " plan=receiveCmd WARNING:" + e.getMessage() );
+       QActorContext.terminateQActorSystem(this); 
+       return false;  
+    }
+    }
+    public boolean askSonarADistance() throws Exception{	//public to allow reflection
+    try{
+    	int nPlanIter = 0;
+    	//curPlanInExec =  "askSonarADistance";
+    	boolean returnValue = suspendWork;		//MARCHH2017
+    while(true){
+    	curPlanInExec =  "askSonarADistance";	//within while since it can be lost by switchlan
+    	nPlanIter++;
+    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"getdistance(S)","getdistance(start)", guardVars ).toString();
+    		sendMsg("getdistance","qapasonara", QActorContext.dispatch, temporaryStr ); 
+    		temporaryStr = "\"#######AskSonarADistance Robot########\"";
+    		println( temporaryStr );  
+    		if( ! planUtils.switchToPlan("receiveSonarADistance").getGoon() ) break;
+    break;
+    }//while
+    return returnValue;
+    }catch(Exception e){
+       //println( getName() + " plan=askSonarADistance WARNING:" + e.getMessage() );
        QActorContext.terminateQActorSystem(this); 
        return false;  
     }
@@ -175,6 +195,7 @@ protected IActorAction  action;
     				    	addRule("tout(receivemsg,"+getName()+")");
     				    }
     		}
+    		printCurrentMessage(false);
     		//onMsg
     		if( currentMessage.msgId().equals("sonar") ){
     			String parg="distA(S)";
@@ -201,6 +222,29 @@ protected IActorAction  action;
        return false;  
     }
     }
+    public boolean askSonarBDistance() throws Exception{	//public to allow reflection
+    try{
+    	int nPlanIter = 0;
+    	//curPlanInExec =  "askSonarBDistance";
+    	boolean returnValue = suspendWork;		//MARCHH2017
+    while(true){
+    	curPlanInExec =  "askSonarBDistance";	//within while since it can be lost by switchlan
+    	nPlanIter++;
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?distA(D)" )) != null ){
+    		temporaryStr = "distdia(D)";
+    		temporaryStr = QActorUtils.substituteVars(guardVars,temporaryStr);
+    		println( temporaryStr );  
+    		}
+    		if( ! planUtils.switchToPlan("receiveSonarBDistance").getGoon() ) break;
+    break;
+    }//while
+    return returnValue;
+    }catch(Exception e){
+       //println( getName() + " plan=askSonarBDistance WARNING:" + e.getMessage() );
+       QActorContext.terminateQActorSystem(this); 
+       return false;  
+    }
+    }
     public boolean receiveSonarBDistance() throws Exception{	//public to allow reflection
     try{
     	int nPlanIter = 0;
@@ -209,8 +253,6 @@ protected IActorAction  action;
     while(true){
     	curPlanInExec =  "receiveSonarBDistance";	//within while since it can be lost by switchlan
     	nPlanIter++;
-    		temporaryStr = "\"#######SonarBDistance Robot########\"";
-    		println( temporaryStr );  
     		if( ! checkInMsgQueue() ){
     			//ReceiveMsg
     					 aar  = planUtils.receiveMsg(mysupport,
@@ -230,6 +272,13 @@ protected IActorAction  action;
     		}
     		//onMsg
     		if( currentMessage.msgId().equals("sonar") ){
+    			String parg = "distdib(F)";
+    			/* Print */
+    			parg =  updateVars( Term.createTerm("sonar(SONARNAME,TARGETNAME,DISTANCE)"), Term.createTerm("sonar(sonarb,qrparobot,F)"), 
+    				    		  					Term.createTerm(currentMessage.msgContent()), parg);
+    				if( parg != null ) println( parg );  
+    		}//onMsg
+    		if( currentMessage.msgId().equals("sonar") ){
     			String parg="distB(F)";
     			/* PHead */
     			parg =  updateVars( Term.createTerm("sonar(SONARNAME,TARGETNAME,DISTANCE)"), Term.createTerm("sonar(sonarb,qrparobot,F)"), 
@@ -247,6 +296,11 @@ protected IActorAction  action;
     					}else if( ! aar.getGoon() ) break;
     				}
     		}if( (guardVars = QActorUtils.evalTheGuard(this, " !?uguale(A,B)" )) != null ){
+    		temporaryStr = "ug(A,B)";
+    		temporaryStr = QActorUtils.substituteVars(guardVars,temporaryStr);
+    		println( temporaryStr );  
+    		}
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?uguale(A,B)" )) != null ){
     		if( ! planUtils.switchToPlan("stopRobot").getGoon() ) break;
     		}
     		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
@@ -276,7 +330,7 @@ protected IActorAction  action;
     		    	curPlanInExec   = "startRobot";
     		    	if( ! aar.getGoon() ) break;
     		    } 			
-    		if( ! planUtils.switchToPlan("receiveSonarBDistance").getGoon() ) break;
+    		if( ! planUtils.switchToPlan("askSonarBDistance").getGoon() ) break;
     break;
     }//while
     return returnValue;
@@ -303,6 +357,8 @@ protected IActorAction  action;
     		    } 			
     		temporaryStr = "\"#######Robot Stop#######\"";
     		println( temporaryStr );  
+    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"getdistance(S)","getdistance(stop)", guardVars ).toString();
+    		sendMsg("getdistance","qapasonarb", QActorContext.dispatch, temporaryStr ); 
     		//delay
     		aar = delayReactive(100000,"" , "");
     		if( aar.getInterrupted() ) curPlanInExec   = "stopRobot";

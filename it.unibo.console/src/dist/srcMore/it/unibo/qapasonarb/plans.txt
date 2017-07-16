@@ -1,0 +1,8 @@
+plan(1,init, sentence(true,move(print("#############Start SonarB##########")),'','' ))
+plan(2,init, sentence(true,move(actorOp(startSonarC)),'','' ))
+plan(3,init, sentence(true,move( switchplan(sendDistance) ),'','' ))
+plan(1,sendDistance, sentence(true,move(print("#######Send Distance SonarB########")),'','' ))
+plan(2,sendDistance, sentence(true,move(actorOp(getDistanceFromSonar)),'','' ))
+plan(3,sendDistance, sentence( d( D),forward(qrparobot, sonar,sonar( sonarb,qrparobot,D)),'','' ))
+plan(4,sendDistance, sentence(-  d( R) ,move(print(done( R))),'','' ))
+plan(5,sendDistance, sentence(true,repeatplan(0) ,'','' ))

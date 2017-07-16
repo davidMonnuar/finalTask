@@ -65,6 +65,23 @@ public abstract class AbstractQapaconsole extends QActor {
 	    	nPlanIter++;
 	    		temporaryStr = "\"#######Start Remote Console########\"";
 	    		println( temporaryStr );  
+	    		//parg = "actorOp(addCmd)"; //JUNE2017
+	    		parg = "addCmd";
+	    		//ex solveGoalReactive JUNE2017
+	    		aar = actorOpExecuteReactive(parg,3600000,"","");
+	    		//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
+	    		if( aar.getInterrupted() ){
+	    			curPlanInExec   = "init";
+	    			if( aar.getTimeRemained() <= 0 ) addRule("tout(actorOp,"+getName()+")");
+	    			if( ! aar.getGoon() ) break;
+	    		} 			
+	    		else{
+	    		//Store actorOpDone with the result
+	    		 	String gg = "storeActorOpResult( X, Y )".replace("X", parg).replace("Y",aar.getResult() );
+	    		 	//System.out.println("actorOpExecute gg=" + gg );
+	    			 	 	pengine.solve(gg+".");			
+	    		}
+	    		
 	    		if( ! planUtils.switchToPlan("sendUserCommands").getGoon() ) break;
 	    break;
 	    }//while
@@ -93,9 +110,9 @@ public abstract class AbstractQapaconsole extends QActor {
 	    		printCurrentEvent(false);
 	    		//onEvent
 	    		if( currentEvent.getEventId().equals("local_inputcmd") ){
-	    		 		String parg="cmd(cmd0)";
+	    		 		String parg="cmd(X)";
 	    		 		/* SendDispatch */
-	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(cmd0)"), 
+	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(X)"), 
 	    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
 	    		 		if( parg != null ) sendMsg("cmd","qrparobot", QActorContext.dispatch, parg ); 
 	    		 }

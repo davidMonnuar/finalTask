@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Class-Path: .  lib/uniboInterfaces.jar lib/unibonoawtsupports.jar lib/
+ uniboEnvBaseAwt.jar lib/2p301.jar lib/qa18Akka.jar lib/nanoHTTPD.jar 
+ lib/labbaseRobotSam.jar lib/uniboQactorRobot.jar lib/akka-actor_2.11-
+ 2.5.1.jar lib/akka-remote_2.11-2.5.1.jar lib/json-20160810.jar lib/or
+ g.eclipse.paho.client.mqttv3-1.1.0.jar lib/pi4j-core-1.1.jar lib/scal
+ a-library-2.11.11.jar lib/config-1.3.1.jar lib/scala-java8-compat_2.1
+ 1-0.7.0.jar lib/akka-stream_2.11-2.5.1.jar lib/akka-protobuf_2.11-2.5
+ .1.jar lib/netty-3.10.6.Final.jar lib/aeron-driver-1.2.5.jar lib/aero
+ n-client-1.2.5.jar lib/reactive-streams-1.0.0.jar lib/ssl-config-core
+ _2.11-0.2.1.jar lib/agrona-0.9.5.jar lib/scala-parser-combinators_2.1
+ 1-1.0.4.jar
+Main-Class: it.unibo.cxt_paSonarB.MainCxt_paSonarB
+
