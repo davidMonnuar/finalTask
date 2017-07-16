@@ -65,77 +65,12 @@ public abstract class AbstractQapasonara extends QActor {
 	    	nPlanIter++;
 	    		temporaryStr = "\"#############Start SonarA##########\"";
 	    		println( temporaryStr );  
-	    		//parg = "actorOp(startSonarC)"; //JUNE2017
-	    		parg = "startSonarC";
-	    		//ex solveGoalReactive JUNE2017
-	    		aar = actorOpExecuteReactive(parg,3600000,"","");
-	    		//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
-	    		if( aar.getInterrupted() ){
-	    			curPlanInExec   = "init";
-	    			if( aar.getTimeRemained() <= 0 ) addRule("tout(actorOp,"+getName()+")");
-	    			if( ! aar.getGoon() ) break;
-	    		} 			
-	    		else{
-	    		//Store actorOpDone with the result
-	    		 	String gg = "storeActorOpResult( X, Y )".replace("X", parg).replace("Y",aar.getResult() );
-	    		 	//System.out.println("actorOpExecute gg=" + gg );
-	    			 	 	pengine.solve(gg+".");			
-	    		}
-	    		
-	    		if( ! planUtils.switchToPlan("reciveMsg").getGoon() ) break;
+	    		if( ! planUtils.switchToPlan("sendDistance").getGoon() ) break;
 	    break;
 	    }//while
 	    return returnValue;
 	    }catch(Exception e){
 	       //println( getName() + " plan=init WARNING:" + e.getMessage() );
-	       QActorContext.terminateQActorSystem(this); 
-	       return false;  
-	    }
-	    }
-	    public boolean reciveMsg() throws Exception{	//public to allow reflection
-	    try{
-	    	int nPlanIter = 0;
-	    	//curPlanInExec =  "reciveMsg";
-	    	boolean returnValue = suspendWork;		//MARCHH2017
-	    while(true){
-	    	curPlanInExec =  "reciveMsg";	//within while since it can be lost by switchlan
-	    	nPlanIter++;
-	    		temporaryStr = "\"#######ReceiveMsg SonarA########\"";
-	    		println( temporaryStr );  
-	    		if( ! checkInMsgQueue() ){
-	    			//ReceiveMsg
-	    					 aar  = planUtils.receiveMsg(mysupport,
-	    					 "getdistance" ,"MSGTYPE", 
-	    					 "qrparobot",this.getName(), 
-	    					 "getdistance(start)","MSGNUM", 20000, "" , "");	//could block
-	    					//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
-	    					if( aar.getInterrupted() ){
-	    						curPlanInExec   = "reciveMsg";
-	    						if( aar.getTimeRemained() <= 0 ) addRule("tout(ReceiveMsg,"+getName()+")");
-	    						if( ! aar.getGoon() ) break;
-	    					} 			
-	    				    if( ! aar.getGoon() || aar.getTimeRemained() <= 0 ){
-	    				    	//println("	WARNING: receivemsg timeout " + aar.getTimeRemained());
-	    				    	addRule("tout(receivemsg,"+getName()+")");
-	    				    }
-	    		}
-	    		printCurrentMessage(false);
-	    		//onMsg
-	    		if( currentMessage.msgId().equals("getdistance") ){
-	    			String parg = "";
-	    			/* SwitchPlan */
-	    			parg =  updateVars(  Term.createTerm("getdistance(S)"), Term.createTerm("getdistance(start)"), 
-	    				    		  					Term.createTerm(currentMessage.msgContent()), parg);
-	    				if( parg != null ){
-	    					 if( ! planUtils.switchToPlan("sendDistance").getGoon() ) break; 
-	    				}//else println("guard  fails");  //parg is null when there is no guard (onEvent)
-	    		}if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
-	    		returnValue = continueWork;  
-	    break;
-	    }//while
-	    return returnValue;
-	    }catch(Exception e){
-	       //println( getName() + " plan=reciveMsg WARNING:" + e.getMessage() );
 	       QActorContext.terminateQActorSystem(this); 
 	       return false;  
 	    }
@@ -148,12 +83,13 @@ public abstract class AbstractQapasonara extends QActor {
 	    while(true){
 	    	curPlanInExec =  "sendDistance";	//within while since it can be lost by switchlan
 	    	nPlanIter++;
-	    		temporaryStr = "\"#######Send Distance SonarA########\"";
-	    		println( temporaryStr );  
 	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonara,qrparobot,50)", guardVars ).toString();
 	    		sendMsg("sonar","qrparobot", QActorContext.dispatch, temporaryStr ); 
-	    		//we should restore nPlanIter and curPlanInExec of the 'interrupted' plan ???
-	    		returnValue = continueWork;
+	    		//delay
+	    		aar = delayReactive(300,"" , "");
+	    		if( aar.getInterrupted() ) curPlanInExec   = "sendDistance";
+	    		if( ! aar.getGoon() ) break;
+	    		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
 	    break;
 	    }//while
 	    return returnValue;

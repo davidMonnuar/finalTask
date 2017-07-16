@@ -110,11 +110,19 @@ public abstract class AbstractQapaconsole extends QActor {
 	    		printCurrentEvent(false);
 	    		//onEvent
 	    		if( currentEvent.getEventId().equals("local_inputcmd") ){
-	    		 		String parg="cmd(X)";
+	    		 		String parg="cmd(start)";
 	    		 		/* SendDispatch */
-	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(X)"), 
+	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(start)"), 
 	    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
 	    		 		if( parg != null ) sendMsg("cmd","qrparobot", QActorContext.dispatch, parg ); 
+	    		 }
+	    		//onEvent
+	    		if( currentEvent.getEventId().equals("local_inputcmd") ){
+	    		 		String parg="alarm(X)";
+	    		 		/* RaiseEvent */
+	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(alarm)"), 
+	    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
+	    		 		if( parg != null ) emit( "alarm", parg );
 	    		 }
 	    		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
 	    break;

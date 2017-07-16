@@ -1,7 +1,7 @@
 RobotSystem paSys
 Dispatch cmd : cmd(X)
+Dispatch sonar : sonar(SONARNAME,TARGETNAME,DISTANCE)
 
-Event sonar : sonar(SONARNAME,TARGETNAME,DISTANCE)
 Event local_inputcmd : usercmd(X)				
 Event alarm : alarm(X)					
 /*
@@ -32,23 +32,33 @@ QActor qapaconsole context cxt_paRemoteConsole {
 QActor qapasonara context cxt_paSonarA {
 	Plan init normal
 	 	println("#############Start SonarA##########");
-	 	actorOp startSonarC;
+	 //	actorOp startSonarC;
 	 	switchToPlan sendDistance
  	Plan sendDistance       
-		actorOp getDistanceFromSonar ;
-		[ !? d(D)] emit sonar : sonar(sonara,qrparobot,D) ;
- 		[ ?? d(R)] println( distanza( R ));
+	//	actorOp getDistanceFromSonar ;
+	//	[ !? d(D)] 
+		forward qrparobot -m sonar : sonar(sonara,qrparobot,50) ;
+		delay time(300);
+ 	//	[ ?? d(R)] println( distanza( R ));
  		repeatPlan
 }
 QActor qapasonarb context cxt_paSonarB {
+	Rules {
+		
+		valutaD( D ) :- eval( gt, D, 251 ),!.
+		valutaD( D ) :- !,assert( dwb(D) ).
+		valutaD( D ).
+	}
 	Plan init normal
 	 	println("#############Start SonarB##########");
 	 	actorOp startSonarC;     
 		switchToPlan sendDistance
 	Plan sendDistance 
 		actorOp getDistanceFromSonar ;
-		[ !? d(D)] emit sonar : sonar(sonarb,qrparobot,D) ;
- 		[ ?? d(R)] println( distanza( R ));
+		[ ?? d(D)] demo valutaD(D) ;
+		[ !? dwb(D)] forward qrparobot -m sonar : sonar(sonarb,qrparobot,D) ;
+ 		[ ?? dwb(R)] println( distanza( R ));
+ 	//	delay time(300);
  		repeatPlan
 }
 
@@ -56,6 +66,9 @@ Robot mocksimple QActor qrparobot context cxt_paRobot
 {
 	Rules {
 		
+		distB( D ) :- distinB( D ), !, assert( ugualeB( D, D ) ).
+		distB( D ) :- eval( lt, D,distA( C ) ), !, assert( minore( B, A ) ).
+		distB( D ) :- eval( gt, D,distA( C ) ), !, assert( maggiore( B, A ) ).
 		distB( D ) :- distA( D ), !, assert( uguale( A, B ) ).
 		distB( D ).
 	}
@@ -65,30 +78,47 @@ Robot mocksimple QActor qrparobot context cxt_paRobot
 	
 	Plan receiveCmd
 	 	receiveMsg time (20000) -m cmd sender qapaconsole  content cmd(X);
-	 	printCurrentMessage;
 	 	onMsg cmd : cmd(start) -> switchToPlan receiveSonarADistance;
 		repeatPlan
 	 	
 	Plan receiveSonarADistance
-	 	sense time(20000) sonar -> continue;
-	 	onEvent sonar : sonar(sonara,qrparobot,F) ->println(distdia( F ));
-	 	onEvent sonar : sonar(sonara,qrparobot,S) -> addRule distA(S);
-	 	onEvent sonar : sonar(sonara,qrparobot,D) -> switchToPlan startRobot;
+	 	receiveMsg time (20000) -m sonar sender qapasonara content sonar(sonara,qrparobot,D);
+	 	onMsg sonar : sonar(sonara,qrparobot,F) ->println(distdia( F ));
+	 	onMsg sonar : sonar(sonara,qrparobot,S) -> addRule distA(S);
+	 	onMsg sonar : sonar(sonara,qrparobot,D) -> switchToPlan startRobot;
 	 	repeatPlan
 	 			
 	Plan receiveSonarBDistance
-	 	sense time(20000) sonar -> continue;
-	 	onEvent sonar : sonar(sonarb,qrparobot,F) ->println(distdib( F ));
-	 	onEvent sonar : sonar(sonarb,qrparobot,F) -> demo distB( F );
+	 	receiveMsg time (20000) -m sonar sender qapasonarb content sonar(sonarb,qrparobot,D);
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) ->println(distdib( F ));
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) -> demo distB( F );
+	 	[!? ugualeB( B, B )] println( ug(B, B));
+	 	[!? minore( B, A )] println( lt(A, B));
+	 	[!? minore( B, A )] switchToPlan leftRobot;
+	 	[!? maggiore( B, A )] println( gt(A, B));
+	 	[!? maggiore( B, A )] switchToPlan rightRobot;
 	 	[!? uguale( A, B )] println( ug(A, B));
 	 	[!? uguale( A, B )] switchToPlan stopRobot;
 	 	repeatPlan 
 			
 	Plan startRobot
 	 	println ("#######Robot go to point B#######");
+	 	receiveMsg time (20000) -m sonar sender qapasonarb content sonar(sonarb,qrparobot,D);
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) ->println(distinizialedib( F ));
+	 	onMsg sonar : sonar(sonarb,qrparobot,F) -> addRule distinB( F );
 	 	robotForward speed (100) time (0) react event alarm-> stopRobot;
 	 	switchToPlan receiveSonarBDistance
 	 	
+	Plan leftRobot
+	 	robotLeft speed(100) time(1000);
+	 	println ("#######Robot LEFT#######");
+	 	robotForward speed (100) time (0) react event alarm-> stopRobot;
+		resumeLastPlan
+	Plan rightRobot
+	 	robotRight speed(100) time(1000);
+	 	println ("#######Robot RIGHT#######");
+	 	robotForward speed (100) time (0) react event alarm-> stopRobot;
+	 	resumeLastPlan
 	Plan stopRobot
 	 	robotStop speed(0) time(0);
 	 	println ("#######Robot Stop#######");

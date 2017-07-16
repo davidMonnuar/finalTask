@@ -16,8 +16,7 @@ digraph finite_state_machine {
   	iniziale -> init [label = ""];
   	
   	
-  	init -> reciveMsg [ label = ""];
+  	init -> sendDistance [ label = ""];
   	
-  	reciveMsg -> reciveMsg [ label = ""];
-  	reciveMsg -> sendDistance [ label = "getdistance(S)/"];
+  	sendDistance -> sendDistance [ label = ""];
 }

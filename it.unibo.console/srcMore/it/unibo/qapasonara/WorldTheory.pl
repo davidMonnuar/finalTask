@@ -136,6 +136,9 @@ actorPrintln( X ):- actorobj(A), text_term(XS,X), A  <- println( XS ).
 %-------------------------------------------------
 %  User static rules about qapasonara
 %------------------------------------------------- 
+valutaD( D):-eval( gt,D,251), ! .
+valutaD( D):- ! ,assert( dwb( D)).
+valutaD( D).
 /*
 ------------------------------------------------------------------------
 testex :- actorPrintln( testex ),

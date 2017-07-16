@@ -100,8 +100,6 @@ public abstract class AbstractQapasonarb extends QActor {
 	    while(true){
 	    	curPlanInExec =  "sendDistance";	//within while since it can be lost by switchlan
 	    	nPlanIter++;
-	    		temporaryStr = "\"#######Send Distance SonarB########\"";
-	    		println( temporaryStr );  
 	    		//parg = "actorOp(getDistanceFromSonar)"; //JUNE2017
 	    		parg = "getDistanceFromSonar";
 	    		//ex solveGoalReactive JUNE2017
@@ -119,12 +117,20 @@ public abstract class AbstractQapasonarb extends QActor {
 	    			 	 	pengine.solve(gg+".");			
 	    		}
 	    		
-	    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?d(D)" )) != null ){
+	    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??d(D)" )) != null ){
+	    		parg = "valutaD(D)";
+	    		parg = QActorUtils.substituteVars(guardVars,parg);
+	    		//tout=1 day (24 h)
+	    		//aar = solveGoalReactive(parg,86400000,"","");
+	    		//genCheckAar(m.name)»		
+	    		QActorUtils.solveGoal(parg,pengine );
+	    		}
+	    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?dwb(D)" )) != null ){
 	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonarb,qrparobot,D)", guardVars ).toString();
 	    		sendMsg("sonar","qrparobot", QActorContext.dispatch, temporaryStr ); 
 	    		}
-	    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??d(R)" )) != null ){
-	    		temporaryStr = "done(R)";
+	    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??dwb(R)" )) != null ){
+	    		temporaryStr = "distanza(R)";
 	    		temporaryStr = QActorUtils.substituteVars(guardVars,temporaryStr);
 	    		println( temporaryStr );  
 	    		}
