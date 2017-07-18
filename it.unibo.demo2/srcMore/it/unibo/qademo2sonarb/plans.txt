@@ -1,0 +1,5 @@
+plan(1,init, sentence(true,move(print("#############Start SonarB##########")),'','' ))
+plan(2,init, sentence(true,move( switchplan(sendDistance) ),'','' ))
+plan(1,sendDistance, sentence(true,delay( 90000) ,'','' ))
+plan(2,sendDistance, sentence(true,forward(qrdemo2robot, sonar,sonar( sonarb,qrdemo2robot,50)),'','' ))
+plan(3,sendDistance, sentence(true,repeatplan(0) ,'','' ))
