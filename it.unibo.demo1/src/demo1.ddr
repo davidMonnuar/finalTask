@@ -17,7 +17,7 @@ QActor qademo1console context cxt_demo1RemoteConsole {
 		println("#######Start Remote Console########");
 		actorOp addCmd;
 		switchToPlan sendUserCommands
-	 
+	/*	STEP 1 REQUIRED 1) starts the robot (already put in A) when the user sends to it a start command by using a remote console; */
 	Plan sendUserCommands
 	 	sense time(100000) local_inputcmd -> continue ; 
 	 	printCurrentEvent;
