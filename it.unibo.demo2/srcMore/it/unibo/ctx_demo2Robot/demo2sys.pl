@@ -3,8 +3,8 @@
 %====================================================================================
 context(ctx_demo2robot, "172.20.10.3",  "TCP", "8079" ).  		 
 context(ctx_demo2remoteconsole, "172.20.10.2",  "TCP", "8089" ).  		 
-context(ctx_demo2sonara, "172.20.10.2",  "TCP", "8099" ).  		 
-context(ctx_demo2sonarb, "172.20.10.2",  "TCP", "8069" ).  		 
+context(ctx_demo2sonara, "172.20.10.5",  "TCP", "8099" ).  		 
+context(ctx_demo2sonarb, "172.20.10.4",  "TCP", "8069" ).  		 
 %%% -------------------------------------------
 qactor( qademo2console , ctx_demo2remoteconsole, "it.unibo.qademo2console.MsgHandle_Qademo2console"   ). %%store msgs 
 qactor( qademo2console_ctrl , ctx_demo2remoteconsole, "it.unibo.qademo2console.Qademo2console"   ). %%control-driven 

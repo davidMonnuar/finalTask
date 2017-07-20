@@ -10,5 +10,5 @@ Class-Path: .  lib/uniboInterfaces.jar lib/unibonoawtsupports.jar lib/
  n-client-1.2.5.jar lib/reactive-streams-1.0.0.jar lib/ssl-config-core
  _2.11-0.2.1.jar lib/agrona-0.9.5.jar lib/scala-parser-combinators_2.1
  1-1.0.4.jar
-Main-Class: it.unibo.ctx_demo2Robot.MainCtx_demo2Robot
+Main-Class: it.unibo.ctx_demo2SonarB.MainCtx_demo2SonarB
 

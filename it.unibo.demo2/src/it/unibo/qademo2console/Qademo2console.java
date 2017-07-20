@@ -16,47 +16,11 @@ public class Qademo2console extends AbstractQademo2console implements IActivity 
 	}
 
 	public void addCmd(){
-
 		outEnvView.getEnv().addCmdPanel("START", new String[]{"start"}, this);
 		outEnvView.getEnv().addCmdPanel("ALARM", new String[]{"alarm"}, this);
-		/*	((EnvFrame) env).addCmdPanel("BACKWARD", new String[]{"BACKWARD"}, this);
-			((EnvFrame) env).addCmdPanel("RIGHT", new String[]{"RIGHT"}, this);
-			((EnvFrame) env).addCmdPanel("LEFT", new String[]{"LEFT"}, this);
-			((EnvFrame) env).addCmdPanel("STOP", new String[]{"STOP"}, this);*/
 	 }
 	 public void execAction(String cmd) {
-/*
-	 String command="";
-
-	 String speed="100";
-
-	 if( cmd.equals("FORWARD") ){
-
-	 command="mf";
-
-	 }else if(cmd.equals("BACKWARD")){
-
-	 command="mb";
-
-	 }else if(cmd.equals("RIGHT")){
-
-	 command="mr";
-
-	 }else if(cmd.equals("LEFT")){
-
-	 command="ml";
-
-	 }else if(cmd.equals("STOP")){
-
-	 command="mf";
-
-	 speed="0";
-
-	 }
-
-*/	
-	 this.emit("local_inputcmd", "usercmd("+cmd+")");
-
+		 this.emit("local_inputcmd", "usercmd("+cmd+")");
 	 }
 	@Override
 	public void execAction() {

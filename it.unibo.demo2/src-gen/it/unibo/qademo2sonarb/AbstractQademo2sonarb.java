@@ -65,6 +65,23 @@ public abstract class AbstractQademo2sonarb extends QActor {
 	    	nPlanIter++;
 	    		temporaryStr = "\"#############Start SonarB##########\"";
 	    		println( temporaryStr );  
+	    		//parg = "actorOp(startSonarC)"; //JUNE2017
+	    		parg = "startSonarC";
+	    		//ex solveGoalReactive JUNE2017
+	    		aar = actorOpExecuteReactive(parg,3600000,"","");
+	    		//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
+	    		if( aar.getInterrupted() ){
+	    			curPlanInExec   = "init";
+	    			if( aar.getTimeRemained() <= 0 ) addRule("tout(actorOp,"+getName()+")");
+	    			if( ! aar.getGoon() ) break;
+	    		} 			
+	    		else{
+	    		//Store actorOpDone with the result
+	    		 	String gg = "storeActorOpResult( X, Y )".replace("X", parg).replace("Y",aar.getResult() );
+	    		 	//System.out.println("actorOpExecute gg=" + gg );
+	    			 	 	pengine.solve(gg+".");			
+	    		}
+	    		
 	    		if( ! planUtils.switchToPlan("sendDistance").getGoon() ) break;
 	    break;
 	    }//while
@@ -83,12 +100,40 @@ public abstract class AbstractQademo2sonarb extends QActor {
 	    while(true){
 	    	curPlanInExec =  "sendDistance";	//within while since it can be lost by switchlan
 	    	nPlanIter++;
-	    		//delay
-	    		aar = delayReactive(90000,"" , "");
-	    		if( aar.getInterrupted() ) curPlanInExec   = "sendDistance";
-	    		if( ! aar.getGoon() ) break;
-	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonarb,qrdemo2robot,50)", guardVars ).toString();
+	    		//parg = "actorOp(getDistanceFromSonar)"; //JUNE2017
+	    		parg = "getDistanceFromSonar";
+	    		//ex solveGoalReactive JUNE2017
+	    		aar = actorOpExecuteReactive(parg,3600000,"","");
+	    		//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
+	    		if( aar.getInterrupted() ){
+	    			curPlanInExec   = "sendDistance";
+	    			if( aar.getTimeRemained() <= 0 ) addRule("tout(actorOp,"+getName()+")");
+	    			if( ! aar.getGoon() ) break;
+	    		} 			
+	    		else{
+	    		//Store actorOpDone with the result
+	    		 	String gg = "storeActorOpResult( X, Y )".replace("X", parg).replace("Y",aar.getResult() );
+	    		 	//System.out.println("actorOpExecute gg=" + gg );
+	    			 	 	pengine.solve(gg+".");			
+	    		}
+	    		
+	    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??d(D)" )) != null ){
+	    		parg = "valutaD(D)";
+	    		parg = QActorUtils.substituteVars(guardVars,parg);
+	    		//tout=1 day (24 h)
+	    		//aar = solveGoalReactive(parg,86400000,"","");
+	    		//genCheckAar(m.name)»		
+	    		QActorUtils.solveGoal(parg,pengine );
+	    		}
+	    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?dwb(D)" )) != null ){
+	    		temporaryStr = QActorUtils.unifyMsgContent(pengine,"sonar(SONARNAME,TARGETNAME,DISTANCE)","sonar(sonarb,qrdemo2robot,D)", guardVars ).toString();
 	    		sendMsg("sonar","qrdemo2robot", QActorContext.dispatch, temporaryStr ); 
+	    		}
+	    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??dwb(R)" )) != null ){
+	    		temporaryStr = "distanza(R)";
+	    		temporaryStr = QActorUtils.substituteVars(guardVars,temporaryStr);
+	    		println( temporaryStr );  
+	    		}
 	    		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
 	    break;
 	    }//while

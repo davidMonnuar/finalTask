@@ -25,10 +25,6 @@ private it.unibo.qactor.robot.RobotActor robot;
 	public static void main(String[] args) throws Exception{
 			IOutputEnvView outEnvView = SituatedSysKb.standardOutEnvView;
 			it.unibo.qactors.QActorUtils.setRobotBase("nano0" );  
-			it.unibo.is.interfaces.IBasicEnvAwt env=new it.unibo.baseEnv.basicFrame.EnvFrame( 
-			"Env_ctx_demo2SonarB",java.awt.Color.green , java.awt.Color.black );
-		env.init();
-		outEnvView = env.getOutputEnvView();
 		    String webDir = null;
 			QActorContext.initQActorSystem(
 				"ctx_demo2sonarb", "./srcMore/it/unibo/ctx_demo2SonarB/demo2sys.pl", 

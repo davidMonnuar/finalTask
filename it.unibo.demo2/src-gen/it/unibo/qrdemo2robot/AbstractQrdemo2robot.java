@@ -251,7 +251,7 @@ protected IActorAction  action;
     		println( temporaryStr );  
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " ??minore(B,A)" )) != null ){
-    		if( ! planUtils.switchToPlan("leftRobot").getGoon() ) break;
+    		if( ! planUtils.switchToPlan("rightRobot").getGoon() ) break;
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " !?maggiore(B,A)" )) != null ){
     		temporaryStr = "gt(A,B)";
@@ -259,7 +259,7 @@ protected IActorAction  action;
     		println( temporaryStr );  
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " ??maggiore(B,A)" )) != null ){
-    		if( ! planUtils.switchToPlan("rightRobot").getGoon() ) break;
+    		if( ! planUtils.switchToPlan("leftRobot").getGoon() ) break;
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " !?uguale(A,B)" )) != null ){
     		temporaryStr = "eq(A,B)";
@@ -292,7 +292,7 @@ protected IActorAction  action;
     					 aar  = planUtils.receiveMsg(mysupport,
     					 "sonar" ,"MSGTYPE", 
     					 "qademo2sonarb",this.getName(), 
-    					 "sonar(sonarb,qrdemo2robot,D)","MSGNUM", 20000, "alarm,obstacle" , "stopRobot,handleObstacle");	//could block
+    					 "sonar(sonarb,qrdemo2robot,D)","MSGNUM", 20000, "alarm,obstacle" , "stopRobot,stopRobot");	//could block
     					//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
     					if( aar.getInterrupted() ){
     						curPlanInExec   = "valueSonarBDistance";
@@ -358,8 +358,8 @@ protected IActorAction  action;
     		temporaryStr = "\"#######Robot go to point B#######\"";
     		println( temporaryStr );  
     		//forward
-    		//if( ! execRobotMove("startRobot","forward",70,0,0, "alarm,obstacle" , "stopRobot,handleObstacle") ) break;
-    		    aar = execRobotMove("startRobot","forward",70,0,0, "alarm,obstacle" , "stopRobot,handleObstacle");
+    		//if( ! execRobotMove("startRobot","forward",60,0,0, "alarm,obstacle" , "stopRobot,handleObstacle") ) break;
+    		    aar = execRobotMove("startRobot","forward",60,0,0, "alarm,obstacle" , "stopRobot,handleObstacle");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "startRobot";
     		    	if( ! aar.getGoon() ) break;
@@ -383,8 +383,8 @@ protected IActorAction  action;
     	curPlanInExec =  "leftRobot";	//within while since it can be lost by switchlan
     	nPlanIter++;
     		//left
-    		//if( ! execRobotMove("leftRobot","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("leftRobot","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("leftRobot","left",60,0,1500, "" , "") ) break;
+    		    aar = execRobotMove("leftRobot","left",60,0,1500, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "leftRobot";
     		    	if( ! aar.getGoon() ) break;
@@ -392,8 +392,8 @@ protected IActorAction  action;
     		temporaryStr = "\"#######Robot LEFT#######\"";
     		println( temporaryStr );  
     		//forward
-    		//if( ! execRobotMove("leftRobot","forward",70,0,0, "alarm,obstacle" , "stopRobot,handleObstacle") ) break;
-    		    aar = execRobotMove("leftRobot","forward",70,0,0, "alarm,obstacle" , "stopRobot,handleObstacle");
+    		//if( ! execRobotMove("leftRobot","forward",60,0,0, "alarm,obstacle" , "stopRobot,stopRobot") ) break;
+    		    aar = execRobotMove("leftRobot","forward",60,0,0, "alarm,obstacle" , "stopRobot,stopRobot");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "leftRobot";
     		    	if( ! aar.getGoon() ) break;
@@ -426,8 +426,8 @@ protected IActorAction  action;
     		temporaryStr = "\"#######Robot RIGHT#######\"";
     		println( temporaryStr );  
     		//forward
-    		//if( ! execRobotMove("rightRobot","forward",70,0,0, "alarm,obstacle" , "stopRobot,handleObstacle") ) break;
-    		    aar = execRobotMove("rightRobot","forward",70,0,0, "alarm,obstacle" , "stopRobot,handleObstacle");
+    		//if( ! execRobotMove("rightRobot","forward",60,0,0, "alarm,obstacle" , "stopRobot,stopRobot") ) break;
+    		    aar = execRobotMove("rightRobot","forward",60,0,0, "alarm,obstacle" , "stopRobot,stopRobot");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "rightRobot";
     		    	if( ! aar.getGoon() ) break;
@@ -601,15 +601,15 @@ protected IActorAction  action;
     		temporaryStr = "\"#######!!!TRY AVOID OBSTACLE ON THE LEFT!!!#######\"";
     		println( temporaryStr );  
     		//left
-    		//if( ! execRobotMove("avoidFixedObstacleLeft","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("avoidFixedObstacleLeft","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("avoidFixedObstacleLeft","left",60,0,1500, "" , "") ) break;
+    		    aar = execRobotMove("avoidFixedObstacleLeft","left",60,0,1500, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "avoidFixedObstacleLeft";
     		    	if( ! aar.getGoon() ) break;
     		    } 			
     		//forward
-    		//if( ! execRobotMove("avoidFixedObstacleLeft","forward",70,0,2500, "alarm,obstacle" , "stopRobot,changeToRight") ) break;
-    		    aar = execRobotMove("avoidFixedObstacleLeft","forward",70,0,2500, "alarm,obstacle" , "stopRobot,changeToRight");
+    		//if( ! execRobotMove("avoidFixedObstacleLeft","forward",60,0,2500, "alarm,obstacle" , "stopRobot,changeToRight") ) break;
+    		    aar = execRobotMove("avoidFixedObstacleLeft","forward",60,0,2500, "alarm,obstacle" , "stopRobot,changeToRight");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "avoidFixedObstacleLeft";
     		    	if( ! aar.getGoon() ) break;
@@ -661,15 +661,15 @@ protected IActorAction  action;
     		    	if( ! aar.getGoon() ) break;
     		    } 			
     		//forward
-    		//if( ! execRobotMove("avoidFixedObstacleRight","forward",70,0,2500, "alarm,obstacle" , "stopRobot,changeToLeft") ) break;
-    		    aar = execRobotMove("avoidFixedObstacleRight","forward",70,0,2500, "alarm,obstacle" , "stopRobot,changeToLeft");
+    		//if( ! execRobotMove("avoidFixedObstacleRight","forward",60,0,2500, "alarm,obstacle" , "stopRobot,changeToLeft") ) break;
+    		    aar = execRobotMove("avoidFixedObstacleRight","forward",60,0,2500, "alarm,obstacle" , "stopRobot,changeToLeft");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "avoidFixedObstacleRight";
     		    	if( ! aar.getGoon() ) break;
     		    } 			
     		//left
-    		//if( ! execRobotMove("avoidFixedObstacleRight","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("avoidFixedObstacleRight","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("avoidFixedObstacleRight","left",60,0,1500, "" , "") ) break;
+    		    aar = execRobotMove("avoidFixedObstacleRight","left",60,0,1500, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "avoidFixedObstacleRight";
     		    	if( ! aar.getGoon() ) break;
@@ -711,8 +711,8 @@ protected IActorAction  action;
     		if( aar.getInterrupted() ) curPlanInExec   = "changeToLeft";
     		if( ! aar.getGoon() ) break;
     		//left
-    		//if( ! execRobotMove("changeToLeft","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("changeToLeft","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("changeToLeft","left",60,0,1700, "" , "") ) break;
+    		    aar = execRobotMove("changeToLeft","left",60,0,1700, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "changeToLeft";
     		    	if( ! aar.getGoon() ) break;
@@ -742,8 +742,8 @@ protected IActorAction  action;
     		if( aar.getInterrupted() ) curPlanInExec   = "changeToRight";
     		if( ! aar.getGoon() ) break;
     		//right
-    		//if( ! execRobotMove("changeToRight","right",60,0,1500, "" , "") ) break;
-    		    aar = execRobotMove("changeToRight","right",60,0,1500, "" , "");
+    		//if( ! execRobotMove("changeToRight","right",60,0,1700, "" , "") ) break;
+    		    aar = execRobotMove("changeToRight","right",60,0,1700, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "changeToRight";
     		    	if( ! aar.getGoon() ) break;
