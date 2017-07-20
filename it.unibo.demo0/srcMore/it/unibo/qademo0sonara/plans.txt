@@ -1,0 +1,7 @@
+plan(1,init, sentence(true,move(print("#############Start SonarA##########")),'','' ))
+plan(2,init, sentence(true,move(actorOp(addCmd)),'','' ))
+plan(3,init, sentence(true,move( switchplan(sendDistance) ),'','' ))
+plan(1,sendDistance, sentence(true,senseEvent(100000,"local_sonara","continue"),'','' ))
+plan(2,sendDistance, sentence(true,printCurrentEvent(false),'','' ))
+plan(3,sendDistance, sentence(true,eventswitch(local_sonara, »sonara( D), forward(qrdemo0robot, sonar,sonar( sonara,qrdemo0robot,D)) ),'','' ))
+plan(4,sendDistance, sentence(true,repeatplan(0) ,'','' ))
