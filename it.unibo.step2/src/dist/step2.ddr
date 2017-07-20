@@ -1,0 +1,316 @@
+RobotSystem step2Sys
+Dispatch cmd : cmd(X)
+Dispatch sonar : sonar(SONARNAME,TARGETNAME,DISTANCE)
+
+Event local_inputcmd : usercmd(X)
+Event switch_mode : mode(X)
+Event obstacle : obstacle(X)				
+Event alarm : alarm(X)					
+
+Context ctx_step2Robot ip [ host="172.20.10.3" port=8079 ]
+Context ctx_step2RemoteConsole ip [ host="172.20.10.2" port=8089 ]  -g white -standalone 
+Context ctx_step2SonarA ip [ host="172.20.10.5" port=8099 ] -standalone 
+Context ctx_step2SonarB ip [ host="172.20.10.4" port=8069 ] -standalone 
+
+QActor qastep2console context ctx_step2RemoteConsole {
+	Plan init normal
+		println("#######Start Remote Console########");
+		actorOp addCmd;
+		switchToPlan sendUserCommands
+	 
+	Plan sendUserCommands
+	 	sense time(100000) local_inputcmd -> continue ; 
+	 	printCurrentEvent;
+	 	onEvent local_inputcmd : usercmd( start ) -> forward qrstep2robot -m cmd : cmd( start );
+	 	onEvent local_inputcmd : usercmd( rforward ) -> forward qrstep2robot -m cmd : cmd( robotforward );
+	 	onEvent local_inputcmd : usercmd( right ) -> forward qrstep2robot -m cmd : cmd( robotright );
+	 	onEvent local_inputcmd : usercmd( left ) -> forward qrstep2robot -m cmd : cmd( robotleft );
+	 	onEvent local_inputcmd : usercmd( stop ) -> forward qrstep2robot -m cmd : cmd( robotstop );
+	 	onEvent local_inputcmd : usercmd( user ) -> emit switch_mode : mode( user );
+	 	onEvent local_inputcmd : usercmd( autonomus ) -> emit switch_mode : mode( auto );
+	 	onEvent local_inputcmd : usercmd( alarm ) -> emit alarm : alarm(X);
+	 	repeatPlan
+}
+QActor qastep2sonara context ctx_step2SonarA {
+	Rules {
+		
+		valutaD( D ) :- eval( gt, D, 251 ),!.
+		valutaD( D ) :- !,assert( dwb(D) ).
+		valutaD( D ).
+	}
+	Plan init normal
+	 	println("#############Start SonarA##########");
+	 	actorOp startSonarC;
+	 	switchToPlan sendDistance
+ 	Plan sendDistance       
+		actorOp getDistanceFromSonar ;
+		[ !? d(D)] demo valutaD(D) ;
+		[ !? dwb(D)]
+		forward qrstep2robot -m sonar : sonar(sonara,qrstep2robot,D) ;
+	//	delay time(900);
+ 		[ ?? dwb(R)] println( distanza( R ));
+ 		repeatPlan 
+}
+QActor qastep2sonarb context ctx_step2SonarB {
+	Rules {
+		
+		valutaD( D ) :- eval( gt, D, 251 ),!.
+		valutaD( D ) :- !,assert( dwb(D) ).
+		valutaD( D ).
+	}
+	Plan init normal
+	 	println("#############Start SonarB##########");
+	 	actorOp startSonarC;     
+		switchToPlan sendDistance
+	Plan sendDistance 
+		actorOp getDistanceFromSonar ;
+		[ ?? d(D)] demo valutaD(D) ;
+		[ !? dwb(D)] forward qrstep2robot -m sonar : sonar(sonarb,qrstep2robot,D) ;
+ 		[ ?? dwb(R)] println( distanza( R ));
+ 	//	delay time(300);
+ 		repeatPlan
+}
+
+Robot nano0 QActor qrstep2robot context ctx_step2Robot 
+{
+	Rules {
+		valueTot( I ) :- returnToA(I,M,V,T),!,assert( curMove(M,V,T)).
+		valueTot( I ).
+		
+		checkAdist( D ) :- distA( C ), eval( lt, C, D ), !, assert( minore( A, MAX ) ).
+		checkAdist( D ) :- distA( C ), eval( gt, C, D ), !, assert( maggiore( A, MAX ) ).
+		checkAdist( D ) :- distA( D ), !, assert( uguale( A, MAX ) ).		
+		checkAdist( D ).
+		
+		distB( D ) :- distA( C ), eval( lt, D, C ), !, assert( minore( B, A ) ).
+		distB( D ) :- distA( C ), eval( gt, D, C ), !, assert( maggiore( B, A ) ).
+		distB( D ) :- distA( D ), !, assert( uguale( A, B ) ).
+		distB( D ).
+	}
+	
+	Plan init normal
+	 	println("#######Start Robot########");
+	 	switchToPlan receiveCmd
+	
+	Plan receiveCmd
+	 	receiveMsg time (20000) -m cmd sender qastep2console  content cmd(X) react 
+	 		event switch_mode->switchMode;
+	 	onMsg cmd : cmd(start) -> switchToPlan receiveSonarADistance;
+	 	repeatPlan
+	 	
+	Plan receiveMoveCmd
+	 	receiveMsg time (20000) -m cmd sender qastep2console  content cmd(X) react
+	 		event switch_mode -> switchMode
+	 		or event obstacle -> userStop
+	 		or event alarm -> userStop;
+	 	onMsg cmd : cmd( robotforward ) -> switchToPlan userForward;
+	 	onMsg cmd : cmd( robotright ) -> switchToPlan userRight;
+	 	onMsg cmd : cmd( robotleft ) -> switchToPlan userLeft;
+	 	onMsg cmd : cmd( robotstop ) -> switchToPlan userStop;
+		repeatPlan	
+//*******************Step 2 Req 2*****************************//	
+	Plan switchMode
+		onEvent switch_mode : mode(user) -> switchToPlan userMode;
+		onEvent switch_mode : mode(auto) -> switchToPlan autonomusMode;
+		repeatPlan
+	Plan userMode
+	 	println("#######Robot User Mode########");
+	 	actorOp saveMoveOnProlog;
+		robotStop speed(0) time(0);
+		switchToPlan receiveMoveCmd
+	Plan autonomusMode
+	 	println("#######Robot Autonomus Mode########");
+	 	actorOp saveMoveOnProlog;
+	 	actorOp saveTotMoveOnProlog;
+	 	robotLeft speed(60) time(3500);
+		robotStop speed(0) time(0);
+		switchToPlan returnToStartPoint
+	Plan returnToStartPoint
+		[?? totMove(0)] switchToPlan receiveCmd;
+		[?? totMove( Y )] demo valueTot(Y);
+		[!? curMove(f,V,T)] println (f(V,T));
+		[?? curMove(f,V,T)] robotForward speed(V) time(T) react 
+			event obstacle -> handleObstacleReturn
+			or event alarm -> stopRobot
+			or event switch_mode -> switchMode;
+		[!? curMove(l,V,T)] println (l(V,T));
+		[?? curMove(l,V,T)] robotLeft speed(V) time(T) react 
+			event obstacle -> handleObstacleReturn
+			or event alarm -> stopRobot
+			or event switch_mode -> switchMode;
+		[!? curMove(r,V,T)] println (r(V,T));
+		[?? curMove(r,V,T)] robotRight speed(V) time(T) react 
+			event obstacle -> handleObstacleReturn
+			or event alarm -> stopRobot
+			or event switch_mode -> switchMode;
+		actorOp decI;
+		repeatPlan
+				
+	Plan receiveSonarADistance
+	 	receiveMsg time (20000) -m sonar sender qastep2sonara content sonar(sonara,qrstep2robot,D) react
+	 	 event alarm-> stopRobot
+	 	 or event obstacle -> handleObstacle
+	 	 or event switch_mode -> switchMode;
+	 	onMsg sonar : sonar(sonara,qrstep2robot,F) -> println(distdia( F ));
+	 	onMsg sonar : sonar(sonara,qrstep2robot,S) -> addRule distA(S);
+	 	onMsg sonar : sonar(sonara,qrstep2robot,D) -> switchToPlan startRobot;
+	 	repeatPlan
+	Plan receiveSonarBDistance
+	 	receiveMsg time (20000) -m sonar sender qastep2sonarb content sonar(sonarb,qrstep2robot,D) react
+	 	 event alarm-> stopRobot
+	 	 or event obstacle -> handleObstacle
+	 	 or event switch_mode -> switchMode;
+	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) ->println(distinizialedib( F ));
+	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) -> demo distB( F );
+	 	[!? minore( B, A )] println( lt(A, B));
+	 	[?? minore( B, A )] switchToPlan leftRobot;
+	 	[!? maggiore( B, A )] println( gt(A, B));
+	 	[?? maggiore( B, A )] switchToPlan rightRobot;
+	 	[!? uguale( A, B )] println( eq(A, B));
+	 	[?? uguale( A, B )] switchToPlan stopRobot;
+	 	repeatPlan 
+	Plan valueSonarBDistance
+	 	receiveMsg time (20000) -m sonar sender qastep2sonarb content sonar(sonarb,qrstep2robot,D) react
+	 	 event alarm-> stopRobot
+	 	 or event obstacle -> handleObstacleReturn
+	 	 or event switch_mode -> switchMode;
+	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) ->println(distdib( F ));
+	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) -> demo distB( F );
+	 	[!? uguale( A, B )] println( ug(A, B));
+	 	[?? uguale( A, B )] switchToPlan stopRobot;
+	 	repeatPlan 
+					
+	Plan startRobot
+	 	println ("#######Robot go to point B#######");
+	 	actorOp saveMoveOnProlog;
+	 	robotForward speed (60) time (0) react
+	 	 event alarm-> stopRobot
+	 	 or event obstacle -> handleObstacle
+	 	 or event switch_mode -> switchMode;
+	 	actorOp loadInfoMove(f);
+	 	switchToPlan receiveSonarBDistance	 
+	Plan leftRobot
+	 	actorOp saveMoveOnProlog;
+	 	actorOp loadInfoMove(l);
+	 	robotLeft speed(60) time(1750);	
+	 	actorOp saveMoveOnProlog; 	
+	 	println ("#######Robot LEFT#######");
+	 	robotForward speed (60) time (0) react
+	 	 event alarm-> stopRobot
+	 	 or event obstacle -> handleObstacleReturn
+	 	 or event switch_mode -> switchMode;
+	 	actorOp loadInfoMove(f);
+		switchToPlan valueSonarBDistance
+	Plan rightRobot
+		actorOp saveMoveOnProlog;
+	 	actorOp loadInfoMove(r);
+	 	robotRight speed(60) time(1500);
+	 	actorOp saveMoveOnProlog;
+	 	println ("#######Robot RIGHT#######");
+	 	robotForward speed (60) time (0)react
+	 	 event alarm-> stopRobot
+	 	 or event obstacle -> handleObstacleReturn
+	 	 or event switch_mode -> switchMode;
+	 	actorOp loadInfoMove(f);
+	 	switchToPlan valueSonarBDistance
+	Plan stopRobot
+	 	actorOp saveMoveOnProlog;
+	 	robotStop speed(0) time(0);
+	 	println ("#######Robot Stop#######");
+	 	delay time (100000);
+	 	endQActor "#######Robot End#######"
+	
+	Plan userForward
+		actorOp saveMoveOnProlog;
+	 	robotForward speed (60) time (0) react
+		 	 event alarm-> userStop
+		 	 or event obstacle -> userStop;
+	 	actorOp loadInfoMove(f);
+	 	switchToPlan receiveMoveCmd	 
+	Plan userLeft
+	 	actorOp saveMoveOnProlog;
+	 	robotLeft speed(60) time(0) react
+		 	 event alarm-> userStop
+		 	 or event obstacle -> userStop;
+	 	actorOp loadInfoMove(l);
+	 	switchToPlan receiveMoveCmd	 
+	Plan userRight
+	 	actorOp saveMoveOnProlog;
+	 	robotRight speed(60) time(0) react
+		 	 event alarm-> userStop
+		 	 or event obstacle -> userStop;
+	 	actorOp loadInfoMove(r);
+	 	switchToPlan receiveMoveCmd	 
+	Plan userStop
+	 	actorOp saveMoveOnProlog;
+	 	robotStop speed(0) time(0);
+	 	switchToPlan receiveMoveCmd	 
+	 	
+	Plan handleObstacleReturn
+	 	println ("#######!!!WARNING OBSTACLE!!!#######");
+	 	robotStop speed (0) time (0);
+		switchToPlan stopRobot		 	
+	
+	Plan handleObstacle
+	 	println ("#######!!!WARNING OBSTACLE!!!#######");
+	 	actorOp saveMoveOnProlog;
+	 	robotStop speed (0) time (0);
+	 	delay time(3000) react 
+	 		event alarm -> stopRobot;
+	 	sense time(500) obstacle-> continue;
+	 	onEvent obstacle : obstacle(D) -> switchToPlan handleFixedObstacle;
+		switchToPlan handleMobileObstacle
+	Plan handleMobileObstacle
+	 	println ("#######!!!MOBILE OBSTACLE!!!#######");
+	 	switchToPlan startRobot
+	Plan handleFixedObstacle
+	 	println ("#######!!!FIXED OBSTACLE!!!#######");
+	 	demo checkAdist (125);
+	 	[!? minore( A, MAX )] println( lt( A, MAX ));
+	 	[?? minore( A, MAX )] switchToPlan avoidFixedObstacleRight;
+	 	[!? maggiore( A, MAX )] println( gt( A, MAX ));
+	 	[?? maggiore( A, MAX )] switchToPlan avoidFixedObstacleLeft;
+	 	[!? uguale( A, MAX )] println( eq( A, MAX ));
+	 	[?? uguale( A, MAX )] switchToPlan avoidFixedObstacleLeft
+	Plan avoidFixedObstacleLeft
+	 	println ("#######!!!TRY AVOID OBSTACLE ON THE LEFT!!!#######");
+	 	robotLeft speed (60) time (1750);
+	 	actorOp loadInfoAvoidObstacleMove(l);
+	 	robotForward speed(60) time(2500) react
+		 	event alarm-> stopRobot
+		 	or event obstacle -> changeToRight;
+		actorOp saveTempInfoAvoidObstacleMove;
+	 	robotRight speed (60) time (1500);
+	 	sense time(500) obstacle-> continue;
+	 	onEvent obstacle : obstacle(D) -> repeatPlan;
+	 	actorOp saveAvoidObstacleMoveOnProlog;
+		switchToPlan startRobot
+	 Plan avoidFixedObstacleRight
+	 	actorOp loadInfoAvoidObstacleMove(r);
+	 	println ("#######!!!TRY AVOID OBSTACLE ON THE RIGHT!!!#######");
+	 	robotRight speed (60) time (1500);
+	 	robotForward speed(60) time(2500) react
+		 	event alarm-> stopRobot
+		 	or event obstacle -> changeToLeft;
+	 	robotLeft speed (60) time (1750);
+	 	sense time(500) obstacle-> continue;
+	 	onEvent obstacle : obstacle(D) -> repeatPlan;
+	 	actorOp saveAvoidObstacleMoveOnProlog;
+		switchToPlan startRobot
+	 Plan changeToLeft
+	 	println ("#######!!!CHANGE ON LEFT!!!#######");
+	 	actorOp changeAvoidObstacleMove(l);
+	 	delay time(2000) react
+	 		event alarm-> stopRobot;
+	 	robotLeft speed (60) time (1750);
+		switchToPlan avoidFixedObstacleLeft
+	  Plan changeToRight
+	 	println ("#######!!!CHANGE ON RIGHT!!!#######");
+	 	actorOp changeAvoidObstacleMove(r);
+	 	delay time(2000) react
+	 		event alarm-> stopRobot;
+	 	robotRight speed (60) time (1500);
+		switchToPlan avoidFixedObstacleRight
+	 	 		
+	
+}

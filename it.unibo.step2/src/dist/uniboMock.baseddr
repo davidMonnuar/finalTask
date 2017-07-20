@@ -1,0 +1,15 @@
+RobotBase mocksimple                
+ //BASIC                
+motorleft    = Motor  [ simulated 0  ]  position: LEFT
+motorright   = Motor  [ simulated 0  ]  position: RIGHT  
+//SENSORS 
+//distanceMock = Distance [ simulated 0  ] position: FRONT 
+//colorMock    = Color  [ simulated 0  ] position: FRONT
+//lineMock     = Line  [ simulated 0  ] position: FRONT
+//impactMock   = Impact [ simulated 0  ] position: FRONT
+//magnetoMock  = Magnetometer [ simulated 0  ] position: FRONT
+//COMPOSED   
+motors = Actuators [ motorleft , motorright  ] private position: BOTTOM
+Mainrobot mocksimple  [ motors  ]        
+; 
+ 
