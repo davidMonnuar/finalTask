@@ -150,7 +150,7 @@ protected IActorAction  action;
     					 aar  = planUtils.receiveMsg(mysupport,
     					 "cmd" ,"MSGTYPE", 
     					 "qastep2console",this.getName(), 
-    					 "cmd(X)","MSGNUM", 20000, "switch_mode,obstacle,alarm" , "switchMode,userStop,userStop");	//could block
+    					 "cmd(X)","MSGNUM", 20000, "switch_mode,obstacle,alarm" , "switchMode,handleUserObstacle,userStop");	//could block
     					//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
     					if( aar.getInterrupted() ){
     						curPlanInExec   = "receiveMoveCmd";
@@ -335,8 +335,8 @@ protected IActorAction  action;
     		}
     		
     		//left
-    		//if( ! execRobotMove("autonomusMode","left",60,0,3500, "" , "") ) break;
-    		    aar = execRobotMove("autonomusMode","left",60,0,3500, "" , "");
+    		//if( ! execRobotMove("autonomusMode","left",60,0,3100, "" , "") ) break;
+    		    aar = execRobotMove("autonomusMode","left",60,0,3100, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "autonomusMode";
     		    	if( ! aar.getGoon() ) break;
@@ -378,7 +378,7 @@ protected IActorAction  action;
     		if( (guardVars = QActorUtils.evalTheGuard(this, " ??totMove(0)" )) != null ){
     		if( ! planUtils.switchToPlan("receiveCmd").getGoon() ) break;
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??totMove(Y)" )) != null ){
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?totMove(Y)" )) != null ){
     		parg = "valueTot(Y)";
     		parg = QActorUtils.substituteVars(guardVars,parg);
     		//tout=1 day (24 h)
@@ -387,46 +387,46 @@ protected IActorAction  action;
     		QActorUtils.solveGoal(parg,pengine );
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " !?curMove(f,V,T)" )) != null ){
+    		//forward
+    		//if( ! execRobotMove("returnToStartPoint","forward",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleAutonomusReturnObstacle,stopRobot,switchMode") ) break;
+    		    aar = execRobotMove("returnToStartPoint","forward",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleAutonomusReturnObstacle,stopRobot,switchMode");
+    		    if( aar.getInterrupted() ){
+    		    	curPlanInExec   = "returnToStartPoint";
+    		    	if( ! aar.getGoon() ) break;
+    		    } 			
+    		}
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??curMove(f,V,T)" )) != null ){
     		temporaryStr = "f(V,T)";
     		temporaryStr = QActorUtils.substituteVars(guardVars,temporaryStr);
     		println( temporaryStr );  
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??curMove(f,V,T)" )) != null ){
-    		//forward
-    		//if( ! execRobotMove("returnToStartPoint","forward",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleObstacleReturn,stopRobot,switchMode") ) break;
-    		    aar = execRobotMove("returnToStartPoint","forward",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleObstacleReturn,stopRobot,switchMode");
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?curMove(l,V,T)" )) != null ){
+    		//left
+    		//if( ! execRobotMove("returnToStartPoint","left",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleAutonomusReturnObstacle,stopRobot,switchMode") ) break;
+    		    aar = execRobotMove("returnToStartPoint","left",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleAutonomusReturnObstacle,stopRobot,switchMode");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "returnToStartPoint";
     		    	if( ! aar.getGoon() ) break;
     		    } 			
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?curMove(l,V,T)" )) != null ){
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??curMove(l,V,T)" )) != null ){
     		temporaryStr = "l(V,T)";
     		temporaryStr = QActorUtils.substituteVars(guardVars,temporaryStr);
     		println( temporaryStr );  
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??curMove(l,V,T)" )) != null ){
-    		//left
-    		//if( ! execRobotMove("returnToStartPoint","left",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleObstacleReturn,stopRobot,switchMode") ) break;
-    		    aar = execRobotMove("returnToStartPoint","left",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleObstacleReturn,stopRobot,switchMode");
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?curMove(r,V,T)" )) != null ){
+    		//right
+    		//if( ! execRobotMove("returnToStartPoint","right",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleAutonomusReturnObstacle,stopRobot,switchMode") ) break;
+    		    aar = execRobotMove("returnToStartPoint","right",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleAutonomusReturnObstacle,stopRobot,switchMode");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "returnToStartPoint";
     		    	if( ! aar.getGoon() ) break;
     		    } 			
     		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " !?curMove(r,V,T)" )) != null ){
+    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??curMove(r,V,T)" )) != null ){
     		temporaryStr = "r(V,T)";
     		temporaryStr = QActorUtils.substituteVars(guardVars,temporaryStr);
     		println( temporaryStr );  
-    		}
-    		if( (guardVars = QActorUtils.evalTheGuard(this, " ??curMove(r,V,T)" )) != null ){
-    		//right
-    		//if( ! execRobotMove("returnToStartPoint","right",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleObstacleReturn,stopRobot,switchMode") ) break;
-    		    aar = execRobotMove("returnToStartPoint","right",Integer.parseInt(guardVars.get("V")),0,Integer.parseInt(guardVars.get("T")), "obstacle,alarm,switch_mode" , "handleObstacleReturn,stopRobot,switchMode");
-    		    if( aar.getInterrupted() ){
-    		    	curPlanInExec   = "returnToStartPoint";
-    		    	if( ! aar.getGoon() ) break;
-    		    } 			
     		}
     		//parg = "actorOp(decI)"; //JUNE2017
     		parg = "decI";
@@ -569,7 +569,7 @@ protected IActorAction  action;
     		println( temporaryStr );  
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " ??minore(B,A)" )) != null ){
-    		if( ! planUtils.switchToPlan("leftRobot").getGoon() ) break;
+    		if( ! planUtils.switchToPlan("rightRobot").getGoon() ) break;
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " !?maggiore(B,A)" )) != null ){
     		temporaryStr = "gt(A,B)";
@@ -577,7 +577,7 @@ protected IActorAction  action;
     		println( temporaryStr );  
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " ??maggiore(B,A)" )) != null ){
-    		if( ! planUtils.switchToPlan("rightRobot").getGoon() ) break;
+    		if( ! planUtils.switchToPlan("leftRobot").getGoon() ) break;
     		}
     		if( (guardVars = QActorUtils.evalTheGuard(this, " !?uguale(A,B)" )) != null ){
     		temporaryStr = "eq(A,B)";
@@ -610,7 +610,7 @@ protected IActorAction  action;
     					 aar  = planUtils.receiveMsg(mysupport,
     					 "sonar" ,"MSGTYPE", 
     					 "qastep2sonarb",this.getName(), 
-    					 "sonar(sonarb,qrstep2robot,D)","MSGNUM", 20000, "alarm,obstacle,switch_mode" , "stopRobot,handleObstacleReturn,switchMode");	//could block
+    					 "sonar(sonarb,qrstep2robot,D)","MSGNUM", 20000, "alarm,obstacle,switch_mode" , "stopRobot,stopRobot,switchMode");	//could block
     					//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
     					if( aar.getInterrupted() ){
     						curPlanInExec   = "valueSonarBDistance";
@@ -769,8 +769,8 @@ protected IActorAction  action;
     		}
     		
     		//left
-    		//if( ! execRobotMove("leftRobot","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("leftRobot","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("leftRobot","left",60,0,1500, "" , "") ) break;
+    		    aar = execRobotMove("leftRobot","left",60,0,1500, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "leftRobot";
     		    	if( ! aar.getGoon() ) break;
@@ -795,8 +795,8 @@ protected IActorAction  action;
     		temporaryStr = "\"#######Robot LEFT#######\"";
     		println( temporaryStr );  
     		//forward
-    		//if( ! execRobotMove("leftRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,handleObstacleReturn,switchMode") ) break;
-    		    aar = execRobotMove("leftRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,handleObstacleReturn,switchMode");
+    		//if( ! execRobotMove("leftRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,stopRobot,switchMode") ) break;
+    		    aar = execRobotMove("leftRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,stopRobot,switchMode");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "leftRobot";
     		    	if( ! aar.getGoon() ) break;
@@ -897,8 +897,8 @@ protected IActorAction  action;
     		temporaryStr = "\"#######Robot RIGHT#######\"";
     		println( temporaryStr );  
     		//forward
-    		//if( ! execRobotMove("rightRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,handleObstacleReturn,switchMode") ) break;
-    		    aar = execRobotMove("rightRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,handleObstacleReturn,switchMode");
+    		//if( ! execRobotMove("rightRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,stopRobot,switchMode") ) break;
+    		    aar = execRobotMove("rightRobot","forward",60,0,0, "alarm,obstacle,switch_mode" , "stopRobot,stopRobot,switchMode");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "rightRobot";
     		    	if( ! aar.getGoon() ) break;
@@ -1005,8 +1005,8 @@ protected IActorAction  action;
     		}
     		
     		//forward
-    		//if( ! execRobotMove("userForward","forward",60,0,0, "alarm,obstacle" , "userStop,userStop") ) break;
-    		    aar = execRobotMove("userForward","forward",60,0,0, "alarm,obstacle" , "userStop,userStop");
+    		//if( ! execRobotMove("userForward","forward",60,0,0, "alarm,obstacle" , "userStop,handleUserObstacle") ) break;
+    		    aar = execRobotMove("userForward","forward",60,0,0, "alarm,obstacle" , "userStop,handleUserObstacle");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "userForward";
     		    	if( ! aar.getGoon() ) break;
@@ -1064,8 +1064,8 @@ protected IActorAction  action;
     		}
     		
     		//left
-    		//if( ! execRobotMove("userLeft","left",60,0,0, "alarm,obstacle" , "userStop,userStop") ) break;
-    		    aar = execRobotMove("userLeft","left",60,0,0, "alarm,obstacle" , "userStop,userStop");
+    		//if( ! execRobotMove("userLeft","left",60,0,0, "alarm,obstacle" , "userStop,handleUserObstacle") ) break;
+    		    aar = execRobotMove("userLeft","left",60,0,0, "alarm,obstacle" , "userStop,handleUserObstacle");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "userLeft";
     		    	if( ! aar.getGoon() ) break;
@@ -1123,8 +1123,8 @@ protected IActorAction  action;
     		}
     		
     		//right
-    		//if( ! execRobotMove("userRight","right",60,0,0, "alarm,obstacle" , "userStop,userStop") ) break;
-    		    aar = execRobotMove("userRight","right",60,0,0, "alarm,obstacle" , "userStop,userStop");
+    		//if( ! execRobotMove("userRight","right",60,0,0, "alarm,obstacle" , "userStop,handleUserObstacle") ) break;
+    		    aar = execRobotMove("userRight","right",60,0,0, "alarm,obstacle" , "userStop,handleUserObstacle");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "userRight";
     		    	if( ! aar.getGoon() ) break;
@@ -1198,29 +1198,115 @@ protected IActorAction  action;
        return false;  
     }
     }
-    public boolean handleObstacleReturn() throws Exception{	//public to allow reflection
+    public boolean handleUserObstacle() throws Exception{	//public to allow reflection
     try{
     	int nPlanIter = 0;
-    	//curPlanInExec =  "handleObstacleReturn";
+    	//curPlanInExec =  "handleUserObstacle";
     	boolean returnValue = suspendWork;		//MARCHH2017
     while(true){
-    	curPlanInExec =  "handleObstacleReturn";	//within while since it can be lost by switchlan
+    	curPlanInExec =  "handleUserObstacle";	//within while since it can be lost by switchlan
     	nPlanIter++;
     		temporaryStr = "\"#######!!!WARNING OBSTACLE!!!#######\"";
     		println( temporaryStr );  
+    		//parg = "actorOp(saveMoveOnProlog)"; //JUNE2017
+    		parg = "saveMoveOnProlog";
+    		//ex solveGoalReactive JUNE2017
+    		aar = actorOpExecuteReactive(parg,3600000,"","");
+    		//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
+    		if( aar.getInterrupted() ){
+    			curPlanInExec   = "handleUserObstacle";
+    			if( aar.getTimeRemained() <= 0 ) addRule("tout(actorOp,"+getName()+")");
+    			if( ! aar.getGoon() ) break;
+    		} 			
+    		else{
+    		//Store actorOpDone with the result
+    		 	String gg = "storeActorOpResult( X, Y )".replace("X", parg).replace("Y",aar.getResult() );
+    		 	//System.out.println("actorOpExecute gg=" + gg );
+    			 	 	pengine.solve(gg+".");			
+    		}
+    		
     		//stop
-    		//if( ! execRobotMove("handleObstacleReturn","stop",0,0,0, "" , "") ) break;
-    		    aar = execRobotMove("handleObstacleReturn","stop",0,0,0, "" , "");
+    		//if( ! execRobotMove("handleUserObstacle","stop",0,0,0, "" , "") ) break;
+    		    aar = execRobotMove("handleUserObstacle","stop",0,0,0, "" , "");
     		    if( aar.getInterrupted() ){
-    		    	curPlanInExec   = "handleObstacleReturn";
+    		    	curPlanInExec   = "handleUserObstacle";
     		    	if( ! aar.getGoon() ) break;
     		    } 			
-    		if( ! planUtils.switchToPlan("stopRobot").getGoon() ) break;
+    		//delay
+    		aar = delayReactive(3000,"alarm" , "stopRobot");
+    		if( aar.getInterrupted() ) curPlanInExec   = "handleUserObstacle";
+    		if( ! aar.getGoon() ) break;
+    		//senseEvent
+    		aar = planUtils.senseEvents( 500,"obstacle","continue",
+    		"" , "",ActionExecMode.synch );
+    		if( ! aar.getGoon() || aar.getTimeRemained() <= 0 ){
+    			//println("			WARNING: sense timeout");
+    			addRule("tout(senseevent,"+getName()+")");
+    		}
+    		//onEvent
+    		if( currentEvent.getEventId().equals("obstacle") ){
+    		 		String parg = "";
+    		 		/* SwitchPlan */
+    		 		parg =  updateVars(  Term.createTerm("obstacle(X)"), Term.createTerm("obstacle(D)"), 
+    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
+    		 			if( parg != null ){
+    		 				 if( ! planUtils.switchToPlan("stopRobot").getGoon() ) break; 
+    		 			}//else println("guard  fails");  //parg is null when there is no guard (onEvent)
+    		 }
+    		if( ! planUtils.switchToPlan("receiveMoveCmd").getGoon() ) break;
     break;
     }//while
     return returnValue;
     }catch(Exception e){
-       //println( getName() + " plan=handleObstacleReturn WARNING:" + e.getMessage() );
+       //println( getName() + " plan=handleUserObstacle WARNING:" + e.getMessage() );
+       QActorContext.terminateQActorSystem(this); 
+       return false;  
+    }
+    }
+    public boolean handleAutonomusReturnObstacle() throws Exception{	//public to allow reflection
+    try{
+    	int nPlanIter = 0;
+    	//curPlanInExec =  "handleAutonomusReturnObstacle";
+    	boolean returnValue = suspendWork;		//MARCHH2017
+    while(true){
+    	curPlanInExec =  "handleAutonomusReturnObstacle";	//within while since it can be lost by switchlan
+    	nPlanIter++;
+    		temporaryStr = "\"#######!!!WARNING OBSTACLE!!!#######\"";
+    		println( temporaryStr );  
+    		//stop
+    		//if( ! execRobotMove("handleAutonomusReturnObstacle","stop",0,0,0, "" , "") ) break;
+    		    aar = execRobotMove("handleAutonomusReturnObstacle","stop",0,0,0, "" , "");
+    		    if( aar.getInterrupted() ){
+    		    	curPlanInExec   = "handleAutonomusReturnObstacle";
+    		    	if( ! aar.getGoon() ) break;
+    		    } 			
+    		//delay
+    		aar = delayReactive(3000,"alarm" , "stopRobot");
+    		if( aar.getInterrupted() ) curPlanInExec   = "handleAutonomusReturnObstacle";
+    		if( ! aar.getGoon() ) break;
+    		//senseEvent
+    		aar = planUtils.senseEvents( 500,"obstacle","continue",
+    		"" , "",ActionExecMode.synch );
+    		if( ! aar.getGoon() || aar.getTimeRemained() <= 0 ){
+    			//println("			WARNING: sense timeout");
+    			addRule("tout(senseevent,"+getName()+")");
+    		}
+    		//onEvent
+    		if( currentEvent.getEventId().equals("obstacle") ){
+    		 		String parg = "";
+    		 		/* SwitchPlan */
+    		 		parg =  updateVars(  Term.createTerm("obstacle(X)"), Term.createTerm("obstacle(D)"), 
+    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
+    		 			if( parg != null ){
+    		 				 if( ! planUtils.switchToPlan("stopRobot").getGoon() ) break; 
+    		 			}//else println("guard  fails");  //parg is null when there is no guard (onEvent)
+    		 }
+    		if( ! planUtils.switchToPlan("returnToStartPoint").getGoon() ) break;
+    break;
+    }//while
+    return returnValue;
+    }catch(Exception e){
+       //println( getName() + " plan=handleAutonomusReturnObstacle WARNING:" + e.getMessage() );
        QActorContext.terminateQActorSystem(this); 
        return false;  
     }
@@ -1369,8 +1455,8 @@ protected IActorAction  action;
     		temporaryStr = "\"#######!!!TRY AVOID OBSTACLE ON THE LEFT!!!#######\"";
     		println( temporaryStr );  
     		//left
-    		//if( ! execRobotMove("avoidFixedObstacleLeft","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("avoidFixedObstacleLeft","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("avoidFixedObstacleLeft","left",60,0,1500, "" , "") ) break;
+    		    aar = execRobotMove("avoidFixedObstacleLeft","left",60,0,1500, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "avoidFixedObstacleLeft";
     		    	if( ! aar.getGoon() ) break;
@@ -1503,9 +1589,26 @@ protected IActorAction  action;
     		    	curPlanInExec   = "avoidFixedObstacleRight";
     		    	if( ! aar.getGoon() ) break;
     		    } 			
+    		//parg = "actorOp(saveTempInfoAvoidObstacleMove)"; //JUNE2017
+    		parg = "saveTempInfoAvoidObstacleMove";
+    		//ex solveGoalReactive JUNE2017
+    		aar = actorOpExecuteReactive(parg,3600000,"","");
+    		//println(getName() + " plan " + curPlanInExec  +  " interrupted=" + aar.getInterrupted() + " action goon="+aar.getGoon());
+    		if( aar.getInterrupted() ){
+    			curPlanInExec   = "avoidFixedObstacleRight";
+    			if( aar.getTimeRemained() <= 0 ) addRule("tout(actorOp,"+getName()+")");
+    			if( ! aar.getGoon() ) break;
+    		} 			
+    		else{
+    		//Store actorOpDone with the result
+    		 	String gg = "storeActorOpResult( X, Y )".replace("X", parg).replace("Y",aar.getResult() );
+    		 	//System.out.println("actorOpExecute gg=" + gg );
+    			 	 	pengine.solve(gg+".");			
+    		}
+    		
     		//left
-    		//if( ! execRobotMove("avoidFixedObstacleRight","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("avoidFixedObstacleRight","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("avoidFixedObstacleRight","left",60,0,1500, "" , "") ) break;
+    		    aar = execRobotMove("avoidFixedObstacleRight","left",60,0,1500, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "avoidFixedObstacleRight";
     		    	if( ! aar.getGoon() ) break;
@@ -1581,8 +1684,8 @@ protected IActorAction  action;
     		if( aar.getInterrupted() ) curPlanInExec   = "changeToLeft";
     		if( ! aar.getGoon() ) break;
     		//left
-    		//if( ! execRobotMove("changeToLeft","left",60,0,1750, "" , "") ) break;
-    		    aar = execRobotMove("changeToLeft","left",60,0,1750, "" , "");
+    		//if( ! execRobotMove("changeToLeft","left",60,0,1700, "" , "") ) break;
+    		    aar = execRobotMove("changeToLeft","left",60,0,1700, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "changeToLeft";
     		    	if( ! aar.getGoon() ) break;
@@ -1629,8 +1732,8 @@ protected IActorAction  action;
     		if( aar.getInterrupted() ) curPlanInExec   = "changeToRight";
     		if( ! aar.getGoon() ) break;
     		//right
-    		//if( ! execRobotMove("changeToRight","right",60,0,1500, "" , "") ) break;
-    		    aar = execRobotMove("changeToRight","right",60,0,1500, "" , "");
+    		//if( ! execRobotMove("changeToRight","right",60,0,1700, "" , "") ) break;
+    		    aar = execRobotMove("changeToRight","right",60,0,1700, "" , "");
     		    if( aar.getInterrupted() ){
     		    	curPlanInExec   = "changeToRight";
     		    	if( ! aar.getGoon() ) break;

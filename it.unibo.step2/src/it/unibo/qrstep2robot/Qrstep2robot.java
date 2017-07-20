@@ -21,23 +21,21 @@ public class Qrstep2robot extends AbstractQrstep2robot {
 	{
 		
 		if(m.equals("f")){
-			i++;
 			currentMove = System.currentTimeMillis();
 			currentMoveCmd=m;
 		}else if(m.equals("l")){
-			i++;
 			currentMove = System.currentTimeMillis();
 			currentMoveCmd="r";
 		}else if(m.equals("r")){
-			i++;
 			currentMove = System.currentTimeMillis();
 			currentMoveCmd="l";
 		}
 	}	
 	public void saveMoveOnProlog()
 	{
-		if(i>0 && currentMove != 0 )
+		if( currentMove != 0 )
 		{
+			i++;
 			long stoptime = System.currentTimeMillis() - currentMove;
 			addRule("returnToA("+i+","+currentMoveCmd+",60,"+stoptime+")");
 			currentMove=0;
@@ -64,11 +62,11 @@ public class Qrstep2robot extends AbstractQrstep2robot {
 			i++;
 			addRule("returnToA("+i+",f,60,"+avoidObstacleMove+")");
 			i++;
-			addRule("returnToA("+i+",l,60,1750)");
+			addRule("returnToA("+i+",l,60,1500)");
 		} else if(currentAvoidObstacleMoveCmd.equals("l") && avoidObstacleLeft){
 			avoidObstacleMove= avoidObstacleMove - changeAvoidObstacleMove;
 			i++;
-			addRule("returnToA("+i+",l,60,1750)");
+			addRule("returnToA("+i+",l,60,1500)");
 			i++;
 			addRule("returnToA("+i+",f,60,"+avoidObstacleMove+")");
 			i++;
@@ -77,7 +75,7 @@ public class Qrstep2robot extends AbstractQrstep2robot {
 			changeAvoidObstacleMove=0;
 		} else if(currentAvoidObstacleMoveCmd.equals("r") && !avoidObstacleright){
 			i++;
-			addRule("returnToA("+i+",l,60,1750)");
+			addRule("returnToA("+i+",l,60,1500)");
 			i++;
 			addRule("returnToA("+i+",f,60,"+avoidObstacleMove+")");
 			i++;
@@ -89,7 +87,7 @@ public class Qrstep2robot extends AbstractQrstep2robot {
 			i++;
 			addRule("returnToA("+i+",f,60,"+avoidObstacleMove+")");
 			i++;
-			addRule("returnToA("+i+",l,60,1750)");
+			addRule("returnToA("+i+",l,60,1500)");
 			avoidObstacleright = false;
 			changeAvoidObstacleMove=0;
 		}
@@ -115,6 +113,7 @@ public class Qrstep2robot extends AbstractQrstep2robot {
 	}
 	public void decI()
 	{
+		removeRule("totMove("+i+")");
 		i--;
 		addRule("totMove("+i+")");
 	}

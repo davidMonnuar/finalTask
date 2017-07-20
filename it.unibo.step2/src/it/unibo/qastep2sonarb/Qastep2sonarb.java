@@ -5,10 +5,12 @@ This code is generated only ONCE
 package it.unibo.qastep2sonarb;
 import java.io.BufferedReader;
 
+import it.unibo.is.interfaces.IActivity;
+import it.unibo.is.interfaces.IIntent;
 import it.unibo.is.interfaces.IOutputEnvView;
 import it.unibo.qactors.QActorContext;
 
-public class Qastep2sonarb extends AbstractQastep2sonarb { 
+public class Qastep2sonarb extends AbstractQastep2sonarb implements IActivity { 
 	private BufferedReader readerC;
 	public Qastep2sonarb(String actorId, QActorContext myCtx, IOutputEnvView outEnvView )  throws Exception{
 		super(actorId, myCtx, outEnvView);
@@ -25,15 +27,40 @@ public class Qastep2sonarb extends AbstractQastep2sonarb {
 	}	
 	public void getDistanceFromSonar(){
 		try {
-			
-//			println("getDistanceFromSonar"   );
 			String dist = readerC.readLine();			
 			println("getDistanceFromSonar " + dist  );		
 			this.addRule("d("+dist+")");
-			
 		} catch (Exception e) {
  			e.printStackTrace();
- 			
 		}
+	}
+	protected void addInputPanel(int size){
+	}
+
+	public void addCmd()
+	{
+		outEnvView.getEnv().addCmdPanel("50", new String[]{"50"}, this);
+		outEnvView.getEnv().addCmdPanel("100", new String[]{"100"}, this);
+		outEnvView.getEnv().addCmdPanel("150", new String[]{"150"}, this);
+		outEnvView.getEnv().addCmdPanel("200", new String[]{"200"}, this);
+	}
+	
+	public void execAction(String cmd) {
+		 this.emit("local_sonarb", "sonarb("+cmd+")");
+	}
+	@Override
+	public void execAction() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void execAction(IIntent input) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public String execActionWithAnswer(String cmd) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

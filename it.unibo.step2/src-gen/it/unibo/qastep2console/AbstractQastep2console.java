@@ -118,6 +118,14 @@ public abstract class AbstractQastep2console extends QActor {
 	    		 }
 	    		//onEvent
 	    		if( currentEvent.getEventId().equals("local_inputcmd") ){
+	    		 		String parg="alarm(X)";
+	    		 		/* RaiseEvent */
+	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(alarm)"), 
+	    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
+	    		 		if( parg != null ) emit( "alarm", parg );
+	    		 }
+	    		//onEvent
+	    		if( currentEvent.getEventId().equals("local_inputcmd") ){
 	    		 		String parg="cmd(robotforward)";
 	    		 		/* SendDispatch */
 	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(rforward)"), 
@@ -163,14 +171,6 @@ public abstract class AbstractQastep2console extends QActor {
 	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(autonomus)"), 
 	    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
 	    		 		if( parg != null ) emit( "switch_mode", parg );
-	    		 }
-	    		//onEvent
-	    		if( currentEvent.getEventId().equals("local_inputcmd") ){
-	    		 		String parg="alarm(X)";
-	    		 		/* RaiseEvent */
-	    		 		parg = updateVars(Term.createTerm("usercmd(X)"),  Term.createTerm("usercmd(alarm)"), 
-	    		 			    		  					Term.createTerm(currentEvent.getMsg()), parg);
-	    		 		if( parg != null ) emit( "alarm", parg );
 	    		 }
 	    		if( planUtils.repeatPlan(nPlanIter,0).getGoon() ) continue;
 	    break;

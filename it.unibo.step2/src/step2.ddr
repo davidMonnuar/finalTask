@@ -3,14 +3,16 @@ Dispatch cmd : cmd(X)
 Dispatch sonar : sonar(SONARNAME,TARGETNAME,DISTANCE)
 
 Event local_inputcmd : usercmd(X)
+Event local_sonara : sonara(X)
+Event local_sonarb : sonarb(X)
 Event switch_mode : mode(X)
 Event obstacle : obstacle(X)				
 Event alarm : alarm(X)					
 
 Context ctx_step2Robot ip [ host="172.20.10.3" port=8079 ]
 Context ctx_step2RemoteConsole ip [ host="172.20.10.2" port=8089 ]  -g white -standalone 
-Context ctx_step2SonarA ip [ host="172.20.10.5" port=8099 ] -standalone 
-Context ctx_step2SonarB ip [ host="172.20.10.4" port=8069 ] -standalone 
+Context ctx_step2SonarA ip [ host="172.20.10.5" port=8099 ] -standalone 	//fisico su 172.20.10.5 ** Mock su 172.20.10.2
+Context ctx_step2SonarB ip [ host="172.20.10.4" port=8069 ] -standalone  	//fisico su 172.20.10.4 ** Mock su 172.20.10.2
 
 QActor qastep2console context ctx_step2RemoteConsole {
 	Plan init normal
@@ -21,23 +23,30 @@ QActor qastep2console context ctx_step2RemoteConsole {
 	Plan sendUserCommands
 	 	sense time(100000) local_inputcmd -> continue ; 
 	 	printCurrentEvent;
+	 	/*	STEP 1 REQUIRED 1) starts the robot (already put in A) when the user sends to it a start command by using a remote console; */
 	 	onEvent local_inputcmd : usercmd( start ) -> forward qrstep2robot -m cmd : cmd( start );
+	 	onEvent local_inputcmd : usercmd( alarm ) -> emit alarm : alarm(X);
+	 	/*	STEP 2 REQUIRED 1) the robot must stop its journey and execute movement commands sent by the user via the console. Obviously the robot should avoid to hit obstacles;*/
 	 	onEvent local_inputcmd : usercmd( rforward ) -> forward qrstep2robot -m cmd : cmd( robotforward );
 	 	onEvent local_inputcmd : usercmd( right ) -> forward qrstep2robot -m cmd : cmd( robotright );
 	 	onEvent local_inputcmd : usercmd( left ) -> forward qrstep2robot -m cmd : cmd( robotleft );
 	 	onEvent local_inputcmd : usercmd( stop ) -> forward qrstep2robot -m cmd : cmd( robotstop );
 	 	onEvent local_inputcmd : usercmd( user ) -> emit switch_mode : mode( user );
+	 	/*	STEP 2 REQUIRED 2) among these commands, the user can tell the robot to return in autonomous way to its starting point along the same path already covered, by avoiding to hit (mobile) obstacles.*/
 	 	onEvent local_inputcmd : usercmd( autonomus ) -> emit switch_mode : mode( auto );
-	 	onEvent local_inputcmd : usercmd( alarm ) -> emit alarm : alarm(X);
 	 	repeatPlan
 }
 QActor qastep2sonara context ctx_step2SonarA {
+
+/*	SONAR FISICO */	
+
 	Rules {
 		
 		valutaD( D ) :- eval( gt, D, 251 ),!.
 		valutaD( D ) :- !,assert( dwb(D) ).
 		valutaD( D ).
 	}
+	
 	Plan init normal
 	 	println("#############Start SonarA##########");
 	 	actorOp startSonarC;
@@ -46,11 +55,25 @@ QActor qastep2sonara context ctx_step2SonarA {
 		actorOp getDistanceFromSonar ;
 		[ ?? d(D)] demo valutaD(D) ;
 		[ !? dwb(D)] forward qrstep2robot -m sonar : sonar(sonara,qrstep2robot,D) ;
-	//	delay time(900);
- 		[ ?? dwb(R)] println( distanza( R ));
+		[ ?? dwb(R)] println( distanza( R ));
  		repeatPlan 
+
+/*	SONAR MOCK */
+
+/*	Plan init normal
+	 	println("#############Start SonarA##########");
+		actorOp addCmd;
+	 	switchToPlan sendDistance
+ 	Plan sendDistance       
+		sense time(100000) local_sonara -> continue ; 
+	 	printCurrentEvent;
+	 	onEvent local_sonara : sonara( D ) -> forward qrstep2robot -m sonar : sonar(sonara,qrstep2robot,D) ;
+		repeatPlan 
+*/
 }
 QActor qastep2sonarb context ctx_step2SonarB {
+/*	SONAR FISICO */
+
 	Rules {
 		
 		valutaD( D ) :- eval( gt, D, 251 ),!.
@@ -66,8 +89,20 @@ QActor qastep2sonarb context ctx_step2SonarB {
 		[ ?? d(D)] demo valutaD(D) ;
 		[ !? dwb(D)] forward qrstep2robot -m sonar : sonar(sonarb,qrstep2robot,D) ;
  		[ ?? dwb(R)] println( distanza( R ));
- 	//	delay time(300);
  		repeatPlan
+
+/*	SONAR MOCK */
+
+/*	Plan init normal
+	 	println("#############Start SonarB##########");
+		actorOp addCmd;
+	 	switchToPlan sendDistance
+ 	Plan sendDistance       
+		sense time(100000) local_sonarb -> continue ; 
+	 	printCurrentEvent;
+	 	onEvent local_sonarb : sonarb( D ) -> forward qrstep2robot -m sonar : sonar(sonarb,qrstep2robot,D) ;
+		repeatPlan 
+*/
 }
 
 Robot nano0 QActor qrstep2robot context ctx_step2Robot 
@@ -90,24 +125,25 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	Plan init normal
 	 	println("#######Start Robot########");
 	 	switchToPlan receiveCmd
-	
+	/*	STEP 1 REQUIRED 1) starts the robot (already put in A) when the user sends to it a start command by using a remote console;*/
 	Plan receiveCmd
 	 	receiveMsg time (20000) -m cmd sender qastep2console  content cmd(X) react 
 	 		event switch_mode->switchMode;
 	 	onMsg cmd : cmd(start) -> switchToPlan receiveSonarADistance;
 	 	repeatPlan
-	 	
+	/*	STEP 2 REQUIRED 1) the robot must stop its journey and execute movement commands sent by the user via the console. Obviously the robot should avoid to hit obstacles;*/	
 	Plan receiveMoveCmd
 	 	receiveMsg time (20000) -m cmd sender qastep2console  content cmd(X) react
 	 		event switch_mode -> switchMode
-	 		or event obstacle -> userStop
+	 		or event obstacle -> handleUserObstacle
 	 		or event alarm -> userStop;
 	 	onMsg cmd : cmd( robotforward ) -> switchToPlan userForward;
 	 	onMsg cmd : cmd( robotright ) -> switchToPlan userRight;
 	 	onMsg cmd : cmd( robotleft ) -> switchToPlan userLeft;
 	 	onMsg cmd : cmd( robotstop ) -> switchToPlan userStop;
 		repeatPlan	
-//*******************Step 2 Req 2*****************************//	
+	/*	STEP 2 REQUIRED 1) the robot must stop its journey and execute movement commands sent by the user via the console. Obviously the robot should avoid to hit obstacles;*/
+	/*	STEP 2 REQUIRED 2) among these commands, the user can tell the robot to return in autonomous way to its starting point along the same path already covered, by avoiding to hit (mobile) obstacles.*/
 	Plan switchMode
 		onEvent switch_mode : mode(user) -> switchToPlan userMode;
 		onEvent switch_mode : mode(auto) -> switchToPlan autonomusMode;
@@ -117,35 +153,37 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	 	actorOp saveMoveOnProlog;
 		robotStop speed(0) time(0);
 		switchToPlan receiveMoveCmd
+	/*	STEP 2 REQUIRED 2) among these commands, the user can tell the robot to return in autonomous way to its starting point along the same path already covered, by avoiding to hit (mobile) obstacles.*/
 	Plan autonomusMode
 	 	println("#######Robot Autonomus Mode########");
 	 	actorOp saveMoveOnProlog;
 	 	actorOp saveTotMoveOnProlog;
-	 	robotLeft speed(60) time(3500);
+	 	robotLeft speed(60) time(3100);
 		robotStop speed(0) time(0);
 		switchToPlan returnToStartPoint
 	Plan returnToStartPoint
 		[!? totMove(0)] robotRight speed(60) time(3000);
 		[?? totMove(0)] switchToPlan receiveCmd;
-		[?? totMove( Y )] demo valueTot(Y);
-		[!? curMove(f,V,T)] println (f(V,T));
-		[?? curMove(f,V,T)] robotForward speed(V) time(T) react 
-			event obstacle -> handleObstacleReturn
+		[!? totMove( Y )] demo valueTot(Y);
+		[!? curMove(f,V,T)] robotForward speed(V) time(T) react 
+			event obstacle -> handleAutonomusReturnObstacle
 			or event alarm -> stopRobot
 			or event switch_mode -> switchMode;
-		[!? curMove(l,V,T)] println (l(V,T));
-		[?? curMove(l,V,T)] robotLeft speed(V) time(T) react 
-			event obstacle -> handleObstacleReturn
+		[?? curMove(f,V,T)] println (f(V,T));
+		[!? curMove(l,V,T)] robotLeft speed(V) time(T) react 
+			event obstacle -> handleAutonomusReturnObstacle
 			or event alarm -> stopRobot
 			or event switch_mode -> switchMode;
-		[!? curMove(r,V,T)] println (r(V,T));
-		[?? curMove(r,V,T)] robotRight speed(V) time(T) react 
-			event obstacle -> handleObstacleReturn
+		[?? curMove(l,V,T)] println (l(V,T));
+		[!? curMove(r,V,T)] robotRight speed(V) time(T) react 
+			event obstacle -> handleAutonomusReturnObstacle
 			or event alarm -> stopRobot
 			or event switch_mode -> switchMode;
+		[?? curMove(r,V,T)] println (r(V,T));
 		actorOp decI;
 		repeatPlan
-				
+	/*	STEP 1 REQUIRED 1) starts the robot (already put in A) when the user sends to it a start command by using a remote console;*/
+	/*	STEP 1 REQUIRED 2) drives the robot along a straight path from A to B if no obstacle is detected;*/
 	Plan receiveSonarADistance
 	 	receiveMsg time (20000) -m sonar sender qastep2sonara content sonar(sonara,qrstep2robot,D) react
 	 	 event alarm-> stopRobot
@@ -163,23 +201,24 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) ->println(distinizialedib( F ));
 	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) -> demo distB( F );
 	 	[!? minore( B, A )] println( lt(A, B));
-	 	[?? minore( B, A )] switchToPlan leftRobot;
+	 	[?? minore( B, A )] switchToPlan rightRobot;
 	 	[!? maggiore( B, A )] println( gt(A, B));
-	 	[?? maggiore( B, A )] switchToPlan rightRobot;
+	 	[?? maggiore( B, A )] switchToPlan leftRobot;
 	 	[!? uguale( A, B )] println( eq(A, B));
 	 	[?? uguale( A, B )] switchToPlan stopRobot;
 	 	repeatPlan 
 	Plan valueSonarBDistance
 	 	receiveMsg time (20000) -m sonar sender qastep2sonarb content sonar(sonarb,qrstep2robot,D) react
 	 	 event alarm-> stopRobot
-	 	 or event obstacle -> handleObstacleReturn
+	 	 or event obstacle -> stopRobot
 	 	 or event switch_mode -> switchMode;
 	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) ->println(distdib( F ));
 	 	onMsg sonar : sonar(sonarb,qrstep2robot,F) -> demo distB( F );
 	 	[!? uguale( A, B )] println( ug(A, B));
 	 	[?? uguale( A, B )] switchToPlan stopRobot;
 	 	repeatPlan 
-					
+	/*	STEP 1 REQUIRED 1) starts the robot (already put in A) when the user sends to it a start command by using a remote console;*/
+	/*	STEP 1 REQUIRED 2) drives the robot along a straight path from A to B if no obstacle is detected;*/
 	Plan startRobot
 	 	println ("#######Robot go to point B#######");
 	 	actorOp saveMoveOnProlog;
@@ -192,12 +231,12 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	Plan leftRobot
 	 	actorOp saveMoveOnProlog;
 	 	actorOp loadInfoMove(l);
-	 	robotLeft speed(60) time(1750);	
+	 	robotLeft speed(60) time(1500);	
 	 	actorOp saveMoveOnProlog; 	
 	 	println ("#######Robot LEFT#######");
 	 	robotForward speed (60) time (0) react
 	 	 event alarm-> stopRobot
-	 	 or event obstacle -> handleObstacleReturn
+	 	 or event obstacle -> stopRobot
 	 	 or event switch_mode -> switchMode;
 	 	actorOp loadInfoMove(f);
 		switchToPlan valueSonarBDistance
@@ -209,48 +248,65 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	 	println ("#######Robot RIGHT#######");
 	 	robotForward speed (60) time (0)react
 	 	 event alarm-> stopRobot
-	 	 or event obstacle -> handleObstacleReturn
+	 	 or event obstacle -> stopRobot
 	 	 or event switch_mode -> switchMode;
 	 	actorOp loadInfoMove(f);
 	 	switchToPlan valueSonarBDistance
+	/*	STEP 1 REQUIRED 5) stops the robot if an alarm event occurs.*/
 	Plan stopRobot
 	 	actorOp saveMoveOnProlog;
 	 	robotStop speed(0) time(0);
 	 	println ("#######Robot Stop#######");
 	 	delay time (100000);
 	 	endQActor "#######Robot End#######"
-	
+	/*	STEP 2 REQUIRED 1) the robot must stop its journey and execute movement commands sent by the user via the console. Obviously the robot should avoid to hit obstacles;*/
 	Plan userForward
 		actorOp saveMoveOnProlog;
 	 	robotForward speed (60) time (0) react
 		 	 event alarm-> userStop
-		 	 or event obstacle -> userStop;
+		 	 or event obstacle -> handleUserObstacle;
 	 	actorOp loadInfoMove(f);
 	 	switchToPlan receiveMoveCmd	 
 	Plan userLeft
 	 	actorOp saveMoveOnProlog;
 	 	robotLeft speed(60) time(0) react
 		 	 event alarm-> userStop
-		 	 or event obstacle -> userStop;
+		 	 or event obstacle -> handleUserObstacle;
 	 	actorOp loadInfoMove(l);
 	 	switchToPlan receiveMoveCmd	 
 	Plan userRight
 	 	actorOp saveMoveOnProlog;
 	 	robotRight speed(60) time(0) react
 		 	 event alarm-> userStop
-		 	 or event obstacle -> userStop;
+		 	 or event obstacle -> handleUserObstacle;
 	 	actorOp loadInfoMove(r);
 	 	switchToPlan receiveMoveCmd	 
 	Plan userStop
 	 	actorOp saveMoveOnProlog;
 	 	robotStop speed(0) time(0);
 	 	switchToPlan receiveMoveCmd	 
-	 	
-	Plan handleObstacleReturn
+	/*	STEP 2 REQUIRED 1) the robot must stop its journey and execute movement commands sent by the user via the console. Obviously the robot should avoid to hit obstacles;*/
+	/*	STEP 2 REQUIRED 2) among these commands, the user can tell the robot to return in autonomous way to its starting point along the same path already covered, by avoiding to hit (mobile) obstacles.*/
+	Plan handleUserObstacle
+	 	println ("#######!!!WARNING OBSTACLE!!!#######");
+	 	actorOp saveMoveOnProlog;
+	 	robotStop speed (0) time (0);
+	 	delay time(3000) react 
+	 		event alarm -> stopRobot;
+	 	sense time(500) obstacle-> continue;
+	 	onEvent obstacle : obstacle(D) -> switchToPlan stopRobot;
+		switchToPlan receiveMoveCmd	
+	/*	STEP 2 REQUIRED 2) among these commands, the user can tell the robot to return in autonomous way to its starting point along the same path already covered, by avoiding to hit (mobile) obstacles.*/
+	Plan handleAutonomusReturnObstacle
 	 	println ("#######!!!WARNING OBSTACLE!!!#######");
 	 	robotStop speed (0) time (0);
-		switchToPlan stopRobot		 	
-	
+	 	delay time(3000) react 
+	 		event alarm -> stopRobot;
+	 	sense time(500) obstacle-> continue;
+	 	onEvent obstacle : obstacle(D) -> switchToPlan stopRobot;
+		switchToPlan returnToStartPoint
+	/*	STEP 1 REQUIRED 3) avoids the mobile obstacle by waiting (when detected) that the obstacle disappears from the robot's front;*/
+	/*	STEP 1 REQUIRED 4) avoids the fixed obstacles by finding some alternative path to reach its goal;*/
 	Plan handleObstacle
 	 	println ("#######!!!WARNING OBSTACLE!!!#######");
 	 	actorOp saveMoveOnProlog;
@@ -263,6 +319,7 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	Plan handleMobileObstacle
 	 	println ("#######!!!MOBILE OBSTACLE!!!#######");
 	 	switchToPlan startRobot
+	/*	STEP 1 REQUIRED 4) avoids the fixed obstacles by finding some alternative path to reach its goal;*/
 	Plan handleFixedObstacle
 	 	println ("#######!!!FIXED OBSTACLE!!!#######");
 	 	demo checkAdist (125);
@@ -274,7 +331,7 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	 	[?? uguale( A, MAX )] switchToPlan avoidFixedObstacleLeft
 	Plan avoidFixedObstacleLeft
 	 	println ("#######!!!TRY AVOID OBSTACLE ON THE LEFT!!!#######");
-	 	robotLeft speed (60) time (1750);
+	 	robotLeft speed (60) time (1500);
 	 	actorOp loadInfoAvoidObstacleMove(l);
 	 	robotForward speed(60) time(2500) react
 		 	event alarm-> stopRobot
@@ -292,7 +349,8 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	 	robotForward speed(60) time(2500) react
 		 	event alarm-> stopRobot
 		 	or event obstacle -> changeToLeft;
-	 	robotLeft speed (60) time (1750);
+		actorOp saveTempInfoAvoidObstacleMove;
+	 	robotLeft speed (60) time (1500);
 	 	sense time(500) obstacle-> continue;
 	 	onEvent obstacle : obstacle(D) -> repeatPlan;
 	 	actorOp saveAvoidObstacleMoveOnProlog;
@@ -302,14 +360,14 @@ Robot nano0 QActor qrstep2robot context ctx_step2Robot
 	 	actorOp changeAvoidObstacleMove(l);
 	 	delay time(2000) react
 	 		event alarm-> stopRobot;
-	 	robotLeft speed (60) time (1750);
+	 	robotLeft speed (60) time (1700);
 		switchToPlan avoidFixedObstacleLeft
 	  Plan changeToRight
 	 	println ("#######!!!CHANGE ON RIGHT!!!#######");
 	 	actorOp changeAvoidObstacleMove(r);
 	 	delay time(2000) react
 	 		event alarm-> stopRobot;
-	 	robotRight speed (60) time (1500);
+	 	robotRight speed (60) time (1700);
 		switchToPlan avoidFixedObstacleRight
 	 	 		
 	
